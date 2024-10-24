@@ -35,7 +35,7 @@ async def create_post_start(
     await callback.answer()
 
 
-asdasd
+
 
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'main_channel'))
 async def main_channel_selected(
