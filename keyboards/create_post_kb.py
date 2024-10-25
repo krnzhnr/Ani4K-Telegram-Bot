@@ -18,6 +18,7 @@ def create_post_start_kb():
     )
     return builder.as_markup()
 
+
 def create_post_channel_selection():
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -27,6 +28,15 @@ def create_post_channel_selection():
         text='Тестовый', callback_data=CreatePostCallbackActions(action='test_channel')
     )
     return builder.as_markup()
+
+
+def create_post_channel_test():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text='Тестовый', callback_data=CreatePostCallbackActions(action='test_channel')
+    )
+    return builder.as_markup()
+
 
 def choice_dub_kb():
     builder = InlineKeyboardBuilder()
@@ -49,6 +59,7 @@ def create_post_finish_kb():
     )
     builder.adjust(1)
     return builder.as_markup()
+
 
 def creation_cancel_kb():
     builder = InlineKeyboardBuilder()

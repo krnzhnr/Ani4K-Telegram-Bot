@@ -1,6 +1,6 @@
 from aiogram import Router, F, types, Bot
 from aiogram.types import Message, ReplyKeyboardRemove, PhotoSize
-from keyboards.create_post_kb import choice_dub_kb, create_post_start_kb, create_post_finish_kb, creation_cancel_kb, create_post_channel_selection, CreatePostCallbackActions, ChoiceDubCallbackActions
+from keyboards.create_post_kb import choice_dub_kb, create_post_start_kb, create_post_finish_kb, creation_cancel_kb, create_post_channel_selection, create_post_channel_test, CreatePostCallbackActions, ChoiceDubCallbackActions
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command, StateFilter
@@ -10,6 +10,8 @@ import re
 router = Router()
 
 post = {}
+
+ADMIN_ID = 491203291
 
 class PostCreation(StatesGroup):
     channel_selection = State()
@@ -43,26 +45,34 @@ async def main_channel_selected(
     callback_data: CreatePostCallbackActions,
     state: FSMContext
 ):
-    post.update({'channel_id': '-1001995806263'})
-    print(post)
-    await callback.message.edit_text(
-        f'Выбран канал: <strong>Основной</strong>.\n\nПришли мне постер.',
-        reply_markup=creation_cancel_kb()
-    )
-    await state.set_state(PostCreation.add_poster)
-    await callback.answer()
+    if callback.message.chat.id == ADMIN_ID:
+        post.update({'channel_id': '-1001995806263'})
+        print(f'{callback.message.chat.full_name} выбрал канал ОСНОВНОЙ, ID = {post['channel_id']}')
+        await callback.message.edit_text(
+            f'Выбран канал: <strong>Основной</strong>.\n\nПришли мне постер.',
+            reply_markup=creation_cancel_kb()
+        )
+        await state.set_state(PostCreation.add_poster)
+        await callback.answer()
+    else:
+        await callback.message.edit_text(
+            f'Тебе, {callback.message.chat.full_name}, там делать нечего, так что давай ты выберешь <strong>тестовый</strong> и мы не будем с тобой ругаться.',
+            reply_markup=create_post_channel_test()
+        )
+        print(f'{callback.message.chat.full_name} пытался запостить в основу.')
+        await callback.answer()
 
 
 
 
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'test_channel'))
-async def main_channel_selected(
+async def test_channel_selected(
     callback: types.CallbackQuery,
     callback_data: CreatePostCallbackActions,
     state: FSMContext
 ):
     post.update({'channel_id': '-1002303815016'})
-    print(post)
+    print(f'{callback.message.chat.full_name} выбрал канал ТЕСТОВЫЙ, ID = {post['channel_id']}')
     await callback.message.edit_text(
         f'Выбран канал: <strong>Тестовый</strong>.\n\nПришли мне постер.',
         reply_markup=creation_cancel_kb()
@@ -94,7 +104,7 @@ async def main_channel_selected(
 )
 async def add_poster(message: Message, state: FSMContext, poster_img: PhotoSize, bot: Bot):
     post.update({'poster_id': poster_img.file_id})
-    print(post)
+    print(f'ID постера: {post['poster_id']}')
     await message.answer(
         text='Постер добавлен, дальше пришли полное название с Шикимори.',
         reply_markup=creation_cancel_kb()
@@ -116,7 +126,7 @@ async def add_poster(message: Message, state: FSMContext, poster_img: PhotoSize,
 )
 async def add_name(message: Message, state: FSMContext, bot: Bot):
     post.update({'release_name': message.text})
-    print(post)
+    print(f'Название: {post['release_name']}')
     await message.answer(
         text='Название добавлено, теперь пришли описание. Оно должно быть не длиннее 750 символов.',
         reply_markup=creation_cancel_kb()
@@ -139,7 +149,7 @@ async def add_name(message: Message, state: FSMContext, bot: Bot):
 async def add_descriprion(message: Message, state: FSMContext, bot: Bot):
     if len(message.text) < 750:
         post.update({'description': message.text})
-        print(post)
+        print(f'Описание: {post['description']}')
         await message.answer(
             text='Описание добавлено, теперь пришли количество эпизодов в формате "[Количество] эпизодов(-да)".',
             reply_markup=creation_cancel_kb()
@@ -170,7 +180,7 @@ async def add_descriprion(message: Message, state: FSMContext, bot: Bot):
 )
 async def add_episodes(message: Message, state: FSMContext, bot: Bot):
     post.update({'episodes': message.text})
-    print(post)
+    print(f'Количество эпизодов: {post['episodes']}')
     # await message.answer(str(post))
     await message.answer(
         text='Количество эпизодов добавлено, выбери тип озвучки:',
@@ -193,7 +203,7 @@ async def dub_callback(
     state: FSMContext
 ):
     post.update({'dub': 'dubbed'})
-    print(post)
+    print(f'Тип озвучки: {post['dub']}')
     dub_type = post['dub']
     await callback.message.edit_text(
         f'Выбранный тип озвучки: <strong>Дубляж</strong>\n\nПришли название команды.',
@@ -217,7 +227,7 @@ async def voiceover_callback(
     state: FSMContext
 ):
     post.update({'dub': 'voiceover'})
-    print(post)
+    print(f'Тип озвучки: {post['dub']}')
     dub_type = post['dub']
     await callback.message.edit_text(
         f'Выбранный тип озвучки: <strong>Закадровая озвучка</strong>\n\nПришли название команды.',
@@ -240,7 +250,7 @@ async def voiceover_callback(
 )
 async def add_dub(message: Message, state: FSMContext, bot: Bot):
     post.update({'dub_team': message.text})
-    print(post)
+    print(f'Команда озвучки: {post['dub_team']}')
     # await message.answer(str(post))
     await message.answer(
         text='Тип озвучки и команда добавлены, теперь пришли жанры и темы с Шикимори через пробел.',
@@ -263,13 +273,12 @@ async def add_dub(message: Message, state: FSMContext, bot: Bot):
 )
 async def add_genres_and_topics(message: Message, state: FSMContext, bot: Bot):
     genres_and_topics_list = message.text.split()
-    print(genres_and_topics_list)
     topics_list = ''
     for topic in genres_and_topics_list:
         updated_topic = '#' + topic + ' '
         topics_list = topics_list + updated_topic
-    print(topics_list)
     post.update({'genres_and_topics': topics_list.title()})
+    print(f'Жанры и темы: {post['genres_and_topics']}')
     await message.answer(
         text=f'Жанры и темы добавлены.\n\nВот итоговый вид поста:'
     )
@@ -285,9 +294,7 @@ async def add_genres_and_topics(message: Message, state: FSMContext, bot: Bot):
             caption=post_assembly(),
             reply_markup=create_post_finish_kb()
         )
-        # await message.answer(
-        #     text='Напиши "Опубликовать", если все правильно.' # ДОБАВИТЬ ВМЕСТО ЭТОГО ИНЛАЙН КНОПКУ ОПУБЛИКОВАТЬ
-        # )
+        print(f'\n{message.from_user.full_name} собрал пост:\n\n{post}')
     except Exception as exc:
         await message.answer(str(exc))
 
@@ -314,7 +321,7 @@ def create_final_hashtags():
 
     final_hashtags = f'{name_hashtag} {dub_team_hashtag}'
     post.update({'hashtags': final_hashtags})
-    print(post)
+    print(post['hashtags'])
 
 
 
