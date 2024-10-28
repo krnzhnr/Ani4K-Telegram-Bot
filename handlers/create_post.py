@@ -366,11 +366,14 @@ async def post_publish(
             callback.message.chat.id,
             [callback.message.message_id, callback.message.message_id - 1]
         )
-        await bot.forward_message(
-            chat_id=CHAT_ID,
-            from_chat_id=post['channel_id'],
-            message_id=sent_message.message_id
-        )
+        if post['channel_id'] == '-1002303815016':
+            pass
+        else:
+            await bot.forward_message(
+                chat_id=CHAT_ID,
+                from_chat_id=post['channel_id'],
+                message_id=sent_message.message_id
+            )
         post.clear()
         await callback.answer()
     except Exception as exc:
