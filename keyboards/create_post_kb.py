@@ -14,12 +14,12 @@ class CreatePostCallbackActions(CallbackData, prefix='createpost'):
 def create_post_start_kb():
     builder = InlineKeyboardBuilder()
     builder.button(
-        text='Создать пост', callback_data=CreatePostCallbackActions(action='start')
+        text='Создать пост', callback_data=CreatePostCallbackActions(action='create_announcement')
     )
     return builder.as_markup()
 
 
-def create_post_channel_selection():
+def create_post_channel_selection_kb():
     builder = InlineKeyboardBuilder()
     builder.button(
         text='Основной', callback_data=CreatePostCallbackActions(action='main_channel')
@@ -61,9 +61,9 @@ def create_post_finish_kb():
     return builder.as_markup()
 
 
-def creation_cancel_kb():
-    builder = InlineKeyboardBuilder()
-    builder.button(
-        text='Отменить', callback_data=CreatePostCallbackActions(action='creation_cancel')
-    )
-    return builder.as_markup()
+# def creation_cancel_kb():
+#     builder = InlineKeyboardBuilder()
+#     builder.button(
+#         text='Отменить', callback_data=CreatePostCallbackActions(action='creation_cancel')
+#     )
+#     return builder.as_markup()

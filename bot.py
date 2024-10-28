@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from handlers import start, create_post
+from handlers import start, create_post, create_notification, menu, auto_reposter
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from config_reader import config
@@ -11,12 +11,11 @@ async def main():
         parse_mode=ParseMode.HTML))
     dp = Dispatcher()
 
-    dp.include_routers(start.router, create_post.router)
+    dp.include_routers(start.router, create_post.router, create_notification.router, menu.router, auto_reposter.router)
     
     await bot.delete_webhook(drop_pending_updates=True)
     print('Бот запущен!')
     await dp.start_polling(bot)
-
 
 
 if __name__ == '__main__':

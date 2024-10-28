@@ -1,0 +1,58 @@
+from aiogram.types import ReplyKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters.callback_data import CallbackData
+from aiogram import types
+
+
+class CreateNotificationCallbackActions(CallbackData, prefix='createnotification'):
+    action: str
+
+
+def create_noti_channel_selection_kb():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text='Основной', callback_data=CreateNotificationCallbackActions(action='noti_main_channel')
+    )
+    builder.button(
+        text='Тестовый', callback_data=CreateNotificationCallbackActions(action='noti_test_channel')
+    )
+    return builder.as_markup()
+
+
+def create_noti_release_type_selection():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text='Фильм', callback_data=CreateNotificationCallbackActions(action='film_selected')
+    )
+    builder.button(
+        text='Сериал', callback_data=CreateNotificationCallbackActions(action='series_selected')
+    )
+    return builder.as_markup()
+
+
+def create_noti_channel_test():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text='Тестовый', callback_data=CreateNotificationCallbackActions(action='noti_test_channel')
+    )
+    return builder.as_markup()
+
+
+def create_noti_finish_kb():
+    from handlers.create_notification import notification
+    builder = InlineKeyboardBuilder()
+    builder.row(types.InlineKeyboardButton(
+        text='Перейти в Ani4K HUB', url='https://t.me/ani4k_ru_hub'
+    ))
+    builder.row(types.InlineKeyboardButton(
+        text='Смотреть', url=notification['link']
+    ))
+    builder.button(
+        text='Опубликовать', callback_data=CreateNotificationCallbackActions(action='noti_publish')
+    )
+    builder.button(
+        text='Отменить', callback_data=CreateNotificationCallbackActions(action='noti_finish_cancel')
+    )
+    builder.adjust(1)
+    return builder.as_markup()

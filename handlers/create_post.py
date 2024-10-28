@@ -1,6 +1,8 @@
 from aiogram import Router, F, types, Bot
 from aiogram.types import Message, ReplyKeyboardRemove, PhotoSize
-from keyboards.create_post_kb import choice_dub_kb, create_post_start_kb, create_post_finish_kb, creation_cancel_kb, create_post_channel_selection, create_post_channel_test, CreatePostCallbackActions, ChoiceDubCallbackActions
+from keyboards.menu_kb import create_post_start_kb, creation_cancel_kb
+from keyboards.create_post_kb import choice_dub_kb, create_post_finish_kb, create_post_channel_selection_kb, create_post_channel_test, CreatePostCallbackActions, ChoiceDubCallbackActions
+from keyboards.menu_kb import menu_kb
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command, StateFilter
@@ -12,6 +14,8 @@ router = Router()
 post = {}
 
 ADMIN_ID = 491203291
+CHAT_ID = '-1002104882531'  # ID чата
+
 
 class PostCreation(StatesGroup):
     channel_selection = State()
@@ -26,13 +30,13 @@ class PostCreation(StatesGroup):
 
 
 
-@router.callback_query(CreatePostCallbackActions.filter(F.action == 'start'))
-async def create_post_start(
+@router.callback_query(CreatePostCallbackActions.filter(F.action == 'create_announcement'))
+async def create_post_channel_selection(
     callback: types.CallbackQuery,
     callback_data: CreatePostCallbackActions,
     state: FSMContext
 ):
-    await callback.message.edit_text('Выбери канал для поста.', reply_markup=create_post_channel_selection())
+    await callback.message.edit_text('Выбери канал для поста.', reply_markup=create_post_channel_selection_kb())
     await state.set_state(PostCreation.channel_selection)
     await callback.answer()
 
@@ -349,7 +353,7 @@ async def post_publish(
     bot: Bot
 ):
     try:
-        await bot.send_photo(
+        sent_message = await bot.send_photo(
             chat_id=post['channel_id'],
             photo=post['poster_id'],
             caption=post_assembly()
@@ -361,6 +365,11 @@ async def post_publish(
         await bot.delete_messages(
             callback.message.chat.id,
             [callback.message.message_id, callback.message.message_id - 1]
+        )
+        await bot.forward_message(
+            chat_id=CHAT_ID,
+            from_chat_id=post['channel_id'],
+            message_id=sent_message.message_id
         )
         post.clear()
         await callback.answer()
@@ -387,7 +396,7 @@ async def post_cancel(
     post.clear()
     await callback.message.answer(
         text='Пост удален, можно создавать новый.',
-        reply_markup=create_post_start_kb()
+        reply_markup=menu_kb()
     )
     await bot.delete_messages(
         callback.message.chat.id,
@@ -410,8 +419,8 @@ async def creation_cancel(
     await state.clear()
     post.clear()
     await callback.message.answer(
-        text='Создание поста отменено, можно создавать новый.',
-        reply_markup=create_post_start_kb()
+        text='Создание поста отменено, перед тобой меню.',
+        reply_markup=menu_kb()
     )
     await bot.delete_messages(
         callback.message.chat.id,
