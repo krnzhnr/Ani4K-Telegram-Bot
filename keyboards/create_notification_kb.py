@@ -3,6 +3,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
 from aiogram import types
+from keyboards.create_post_kb import CreatePostCallbackActions
 
 
 class CreateNotificationCallbackActions(CallbackData, prefix='createnotification'):
@@ -31,6 +32,24 @@ def create_noti_release_type_selection():
     return builder.as_markup()
 
 
+def create_noti_howmuchepisedes_selection_kb():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text='Один', callback_data=CreateNotificationCallbackActions(action='one_episode_selected')
+    )
+    builder.button(
+        text='Несколько', callback_data=CreateNotificationCallbackActions(action='many_episodes_selected')
+    )
+    builder.button(
+        text='Отменить', callback_data=CreatePostCallbackActions(action='creation_cancel')
+    )
+    builder.adjust(2)
+    return builder.as_markup()
+
+
+
+
+
 def create_noti_channel_test():
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -42,12 +61,12 @@ def create_noti_channel_test():
 def create_noti_finish_kb():
     from handlers.create_notification import notification
     builder = InlineKeyboardBuilder()
-    builder.row(types.InlineKeyboardButton(
-        text='Перейти в Ani4K HUB', url='https://t.me/ani4k_ru_hub'
-    ))
-    builder.row(types.InlineKeyboardButton(
-        text='Смотреть', url=notification['link']
-    ))
+    # builder.row(types.InlineKeyboardButton(
+    #     text='Перейти в Ani4K HUB', url='https://t.me/ani4k_ru_hub'
+    # ))
+    # builder.row(types.InlineKeyboardButton(
+    #     text='Смотреть', url=notification['link']
+    # ))
     builder.button(
         text='Опубликовать', callback_data=CreateNotificationCallbackActions(action='noti_publish')
     )

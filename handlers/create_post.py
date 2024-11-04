@@ -359,8 +359,8 @@ async def post_publish(
             caption=post_assembly()
         )
         await callback.message.answer(
-            text='Пост опубликован, можно создавать новый.',
-            reply_markup=create_post_start_kb()
+            text='Пост опубликован, перед тобой меню.',
+            reply_markup=menu_kb()
         )
         await bot.delete_messages(
             callback.message.chat.id,

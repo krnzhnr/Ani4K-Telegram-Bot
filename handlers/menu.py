@@ -14,7 +14,14 @@ async def get_menu(message: Message, bot: Bot):
         'Перед тобой меню бота, для выбора действия нажми на соответствующую кнопку.',
         reply_markup=menu_kb()
     )
-    await bot.delete_message(message.chat.id, message.message_id)
+    try:
+        await bot.delete_messages(
+        message.chat.id,
+        [message.message_id, message.message_id - 1]
+    )
+    except:
+        await bot.delete_message(message.chat.id, message.message_id)
+
 
 
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'create'))
