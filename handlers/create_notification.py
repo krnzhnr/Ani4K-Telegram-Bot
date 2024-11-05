@@ -107,7 +107,7 @@ async def create_noti_film_selected(
     state: FSMContext
 ):
     notification.update({'release_type': 'film'})
-    print(notification)
+    print(f'Выбранный тип релиза: Фильм')
     await callback.message.edit_text(
         'Выбранный тип релиза: <strong>Фильм</strong>\n\nПришли название фильма.',
         reply_markup=creation_cancel_kb()
@@ -127,7 +127,7 @@ async def create_noti_film_selected(
     state: FSMContext
 ):
     notification.update({'release_type': 'series'})
-    print(notification)
+    print(f'Выбранный тип релиза: Сериал')
     await callback.message.edit_text(
         'Выбранный тип релиза: <strong>Сериал</strong>\n\nВыбери, сколько эпизодов стало доступно.',
         reply_markup=create_noti_howmuchepisedes_selection_kb()
@@ -147,7 +147,7 @@ async def create_noti_one_episode_selected(
     state: FSMContext
 ):
     notification.update({'how_many_episodes': 'one'})
-    print(notification)
+    print(f'Количество эпизодов: Один')
     await callback.message.edit_text(
         f'Стало доступно эпизодов: <strong>Один</strong>\n\nПришли номер этого эпизода.',
         reply_markup=creation_cancel_kb()
@@ -167,7 +167,7 @@ async def create_noti_many_episodes_selected(
     state: FSMContext
 ):
     notification.update({'how_many_episodes': 'many'})
-    print(notification)
+    print(f'Количество эпизодов: Несколько')
     await callback.message.edit_text(
         f'Стало доступно эпизодов: <strong>Несколько</strong>\n\nПришли номер первого и последнего эпизода через дефиз.\n\nНапример: 1-5',
         reply_markup=creation_cancel_kb()
@@ -191,14 +191,14 @@ async def get_episodes(
 ):
     if notification['how_many_episodes'] == 'one':
         notification.update({'episode': message.text})
-        print(notification)
+        print(f'Номер эпизода: {message.text}')
         await message.answer(
             'Номер эпизода добавлен, теперь пришли название сериала.',
             reply_markup=creation_cancel_kb()
         )
     elif notification['how_many_episodes'] == 'many':
         notification.update({'episodes': message.text})
-        print(notification)
+        print(f'Номера эпизодов: {message.text}')
         await message.answer(
             'Номера эпизодов добавлены, теперь пришли название сериала.',
             reply_markup=creation_cancel_kb()
@@ -224,7 +224,7 @@ async def create_noti_add_name(
     bot: Bot
 ):
     notification.update({'release_name': message.text})
-    print(notification)
+    print(f'Название сериала/фильма: {message.text}')
     await message.answer(
         'Название добавлено, теперь пришли постер.',
         reply_markup=creation_cancel_kb()
@@ -251,8 +251,14 @@ async def create_noti_add_poster(
     bot: Bot
 ):
     notification.update({'poster_id': poster_img.file_id})
-    print(f'ID постера: {notification['poster_id']}')
-    print(notification)
+    uploading_message = await message.answer(
+        'Загружаю постер, ожидайте...'
+    )
+
+    await bot.send_chat_action(
+        chat_id=message.chat.id,
+        action='upload_photo'
+        )
 
     # СКАЧИВАНИЕ И ПОЛУЧЕНИЕ ССЫЛКИ НА ФОТО
 
@@ -264,7 +270,7 @@ async def create_noti_add_poster(
 
     notification.update({'link': poster_link})
 
-    await message.answer(
+    await uploading_message.edit_text(
         'Постер добавлен.\n\nИтоговый вид уведомления:'
     )
 
@@ -273,50 +279,35 @@ async def create_noti_add_poster(
         reply_markup=create_noti_finish_kb()
     )
 
-    # if notification['release_type'] == 'film':
-    #     await message.answer(
-    #         f'{hide_link(notification['link'])}Полнометражный фильм «{notification["release_name"]}» доступен для просмотра!',
-    #         reply_markup=create_noti_finish_kb()
-    #     )
-    # elif notification['release_type'] == 'series':
-    #     if notification['how_many_episodes'] == 'one':
-    #         notification_text = f'{hide_link(notification['link'])}{notification['episode']}-й эпизод сериала «{notification["release_name"]}» доступен для просмотра!'
-    #         await message.answer(
-    #             notification_text,
-    #             reply_markup=create_noti_finish_kb()
-    #         )
-    #         return
-    #     elif notification['how_many_episodes'] == 'many':
-    #         notification_text = f'{hide_link(notification['link'])}{notification['episodes']} эпизоды сериала «{notification["release_name"]}» доступны для просмотра!'
-    #         await message.answer(
-    #             notification_text,
-    #             reply_markup=create_noti_finish_kb()
-    #         )
-
     await bot.delete_messages(
         message.chat.id,
         [message.message_id, message.message_id - 1]
     )
-    print(notification)
     await state.clear()
 
 
 
 
+# ПОДБОР ТЕКСТА УВЕДОМЛЕНИЯ
+
 def notification_text_assembly():
     if notification['release_type'] == 'film':
         notification_text = f'{hide_link(notification['link'])}Полнометражный фильм «{notification["release_name"]}» доступен для просмотра!'
+        print(f'Текст готового уведомления: {notification_text}')
         return notification_text
     
     elif notification['release_type'] == 'series':
         if notification['how_many_episodes'] == 'one':
             notification_text = f'{hide_link(notification['link'])}{notification['episode']}-й эпизод сериала «{notification["release_name"]}» доступен для просмотра!'
+            print(f'Текст готового уведомления: {notification_text}')
             return notification_text
         
         elif notification['how_many_episodes'] == 'many':
             notification_text = f'{hide_link(notification['link'])}{notification['episodes']} эпизоды сериала «{notification["release_name"]}» доступны для просмотра!'
+            print(f'Текст готового уведомления: {notification_text}')
             return notification_text
             
+
 
 
 # ОБРАБОТКА ПУБЛИКАЦИИ
@@ -331,12 +322,12 @@ async def post_publish(
         sent_message = await bot.send_message(
             chat_id=notification['channel_id'],
             text=notification_text_assembly()
-            # text=f'{hide_link(notification["link"])}Полнометражный фильм «{notification["release_name"]}» доступен для просмотра!'
         )
         await callback.message.answer(
             text='Уведомление опубликовано, перед тобой меню.',
             reply_markup=menu_kb()
         )
+        print(f'Уведомление опубликовано.')
         await bot.delete_messages(
             callback.message.chat.id,
             [callback.message.message_id, callback.message.message_id - 1]
@@ -349,6 +340,7 @@ async def post_publish(
                 from_chat_id=notification['channel_id'],
                 message_id=sent_message.message_id
             )
+        print(notification)
         notification.clear()
         await callback.answer()
     except Exception as exc:

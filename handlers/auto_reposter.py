@@ -12,9 +12,9 @@ router = Router()
 
 
 async def sleep():
-    logging.info('Сон 60 секунд...')
+    print('Сон 60 секунд...')
     await asyncio.sleep(60)
-    logging.info("Сон выполнен")
+    print("Сон выполнен")
     return True
 
 
@@ -23,9 +23,12 @@ async def forward_message(
     channel_post: types.Message,
     bot: Bot
 ):
-    logging.info(f"Обнаружен пост: {channel_post.text or channel_post.caption}")
-    if await sleep() is True:
-        logging.info(f"Пересылаю пост: {channel_post.text or channel_post.caption}")
-        await bot.forward_message(CHAT_ID, CHANNEL_ID, channel_post.message_id)
-
+    if channel_post.chat.id == CHANNEL_ID:
+        print(f"Обнаружен пост: {channel_post.text or channel_post.caption}")
+        if await sleep() is True:
+            print(f"Пересылаю пост: {channel_post.text or channel_post.caption}")
+            await bot.forward_message(CHAT_ID, CHANNEL_ID, channel_post.message_id)
+    else:
+        print('Обнаружен пост в тестовом канале. Пропускаю...')
+        pass
 
