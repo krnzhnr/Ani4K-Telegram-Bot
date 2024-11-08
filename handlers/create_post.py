@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command, StateFilter
 from aiogram.methods import SendMessage, send_photo
+from database import add_anime_from_dict
 import re
 
 router = Router()
@@ -353,6 +354,20 @@ async def post_publish(
     bot: Bot
 ):
     try:
+        anime_data = {
+            'poster_id': post['poster_id'],
+            'release_name': post['release_name'],
+            'description': post['description'],
+            'episodes': post['episodes'],
+            'dub': post['dub'],
+            'dub_team': post['dub_team'],
+            'genres_and_topics': post['genres_and_topics'],
+            'hashtags': post['hashtags']
+        }
+
+        # Сохраняем anime_data в базу данных
+        await add_anime_from_dict(anime_data)  # Вызов функции добавления в базу данных
+
         sent_message = await bot.send_photo(
             chat_id=post['channel_id'],
             photo=post['poster_id'],
@@ -378,7 +393,7 @@ async def post_publish(
         await callback.answer()
     except Exception as exc:
         print(exc)
-        await callback.message.edit_text(
+        await callback.message.answer(
             text=f'Что-то пошло не так, вот причина:\n\n{exc}'
         )
         await callback.answer()

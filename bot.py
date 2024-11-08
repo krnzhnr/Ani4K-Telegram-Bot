@@ -4,9 +4,11 @@ from handlers import start, create_post, create_notification, menu, auto_reposte
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from config_reader import config
+from models.models import init_db
 
 
 async def main():
+    await init_db()
     bot = Bot(token=config.bot_token.get_secret_value(), default=DefaultBotProperties(
         parse_mode=ParseMode.HTML))
     dp = Dispatcher()

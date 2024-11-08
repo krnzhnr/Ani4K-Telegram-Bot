@@ -16,3 +16,7 @@ python-dotenv
 typing_extensions
 yarl
 catbox-uploader
+sqlalchemy
+sqlalchemy[asyncio]
+asyncpg
+python-dotenv
