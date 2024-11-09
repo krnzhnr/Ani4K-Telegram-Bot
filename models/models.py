@@ -27,13 +27,13 @@ class Anime(Base):
     poster_id = Column(String(255))
     release_name = Column(String(100), nullable=False)
     description = Column(Text)
-    episodes = Column(String(50))
+    episodes_count = Column(Integer)
     dub = Column(String(50))
     dub_team = Column(String(100))
     hashtags = Column(Text)
 
-    # Связь с жанрами
     genres = relationship("Genre", secondary=anime_genre_association, back_populates="anime")
+    episodes = relationship("Episode", back_populates="anime")
 
 class Genre(Base):
     __tablename__ = "genres"
@@ -41,6 +41,15 @@ class Genre(Base):
     name = Column(String(50), unique=True, nullable=False)
 
     anime = relationship("Anime", secondary=anime_genre_association, back_populates="genres")
+
+class Episode(Base):
+    __tablename__ = "episodes"
+    id = Column(Integer, primary_key=True)
+    media_id = Column(String(255), nullable=False)
+    episode_number = Column(Integer, nullable=False)
+    anime_id = Column(Integer, ForeignKey('anime.id'), nullable=False)
+
+    anime = relationship("Anime", back_populates="episodes")
 
 async def init_db():
     async with engine.begin() as conn:

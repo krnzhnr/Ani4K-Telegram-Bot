@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import Command, StateFilter
 from aiogram.methods import SendMessage, send_photo
-from database import add_anime_from_dict
+from database import add_anime
 import re
 
 router = Router()
@@ -16,6 +16,8 @@ post = {}
 
 ADMIN_ID = 491203291
 CHAT_ID = '-1002104882531'  # ID чата
+
+
 
 
 class PostCreation(StatesGroup):
@@ -376,7 +378,7 @@ async def post_publish(
         print(f'Data in create_post: {anime_data}')
 
         # Сохраняем anime_data в базу данных
-        await add_anime_from_dict(anime_data)  # Вызов функции добавления в базу данных
+        await add_anime(anime_data)  # Вызов функции добавления в базу данных
 
         sent_message = await bot.send_photo(
             chat_id=post['channel_id'],
@@ -407,7 +409,6 @@ async def post_publish(
             text=f'Что-то пошло не так, вот причина:\n\n{exc}'
         )
         await callback.answer()
-
 
 
 
