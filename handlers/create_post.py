@@ -279,10 +279,19 @@ async def add_dub(message: Message, state: FSMContext, bot: Bot):
 async def add_genres_and_topics(message: Message, state: FSMContext, bot: Bot):
     genres_and_topics_list = message.text.split()
     topics_list = ''
+    genres_str = ''
+
+    # Формируем строку с хэштегами и строку жанров с заглавными буквами
     for topic in genres_and_topics_list:
         updated_topic = '#' + topic + ' '
-        topics_list = topics_list + updated_topic
-    post.update({'genres_and_topics': topics_list.title()})
+        topics_list += updated_topic.title()
+        genres_str += topic.title() + ' '
+
+    # Сохраняем в словарь
+    post.update({
+        'genres_and_topics': topics_list.strip(),  # строка с хэштегами
+        'genres': genres_str.strip()  # строка жанров с заглавными буквами
+    })
     print(f'Жанры и темы: {post['genres_and_topics']}')
     await message.answer(
         text=f'Жанры и темы добавлены.\n\nВот итоговый вид поста:'
@@ -361,9 +370,10 @@ async def post_publish(
             'episodes': post['episodes'],
             'dub': post['dub'],
             'dub_team': post['dub_team'],
-            'genres_and_topics': post['genres_and_topics'],
+            'genres': post['genres'],
             'hashtags': post['hashtags']
         }
+        print(f'Data in create_post: {anime_data}')
 
         # Сохраняем anime_data в базу данных
         await add_anime_from_dict(anime_data)  # Вызов функции добавления в базу данных

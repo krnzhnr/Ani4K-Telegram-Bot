@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from config_reader import config
@@ -13,6 +13,14 @@ async_session = async_sessionmaker(
     future=True
 )
 
+# Вспомогательная таблица для связи "многие ко многим"
+anime_genre_association = Table(
+    "anime_genre_association",
+    Base.metadata,
+    Column("anime_id", Integer, ForeignKey("anime.id"), primary_key=True),
+    Column("genre_id", Integer, ForeignKey("genres.id"), primary_key=True)
+)
+
 class Anime(Base):
     __tablename__ = "anime"
     id = Column(Integer, primary_key=True)
@@ -23,26 +31,16 @@ class Anime(Base):
     dub = Column(String(50))
     dub_team = Column(String(100))
     hashtags = Column(Text)
-    
-    seasons = relationship("Season", back_populates="anime")
 
-class Season(Base):
-    __tablename__ = "seasons"
-    id = Column(Integer, primary_key=True)
-    number = Column(Integer)
-    anime_id = Column(Integer, ForeignKey('anime.id'))
-    
-    anime = relationship("Anime", back_populates="seasons")
-    episodes = relationship("Episode", back_populates="season")
+    # Связь с жанрами
+    genres = relationship("Genre", secondary=anime_genre_association, back_populates="anime")
 
-class Episode(Base):
-    __tablename__ = "episodes"
+class Genre(Base):
+    __tablename__ = "genres"
     id = Column(Integer, primary_key=True)
-    title = Column(String(100))
-    episode_number = Column(Integer)
-    season_id = Column(Integer, ForeignKey('seasons.id'))
-    
-    season = relationship("Season", back_populates="episodes")
+    name = Column(String(50), unique=True, nullable=False)
+
+    anime = relationship("Anime", secondary=anime_genre_association, back_populates="genres")
 
 async def init_db():
     async with engine.begin() as conn:

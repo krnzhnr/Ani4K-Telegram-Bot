@@ -1,13 +1,12 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import Anime, engine, async_session
+from models.models import Anime, Genre, async_session
+import re
 
 async def add_anime_from_dict(data: dict):
-    async with async_session() as session:  # создаем сессию в асинхронном контексте
+    async with async_session() as session:
         try:
-            print(f"Session type: {type(session)}")
-
-            # Пытаемся найти уже существующее аниме по названию
+            # Проверка на существование аниме по названию
             result = await session.execute(
                 select(Anime).where(Anime.release_name == data['release_name'])
             )
@@ -16,21 +15,42 @@ async def add_anime_from_dict(data: dict):
                 print("Аниме с таким названием уже существует.")
                 return
 
-            # Создание нового объекта Anime
+            # Извлекаем только число из строки 'episodes'
+            episodes_number = re.search(r'\d+', data['episodes'])
+            episodes = episodes_number.group() if episodes_number else '0'
+
+            # Создаем новый объект Anime
             anime = Anime(
                 poster_id=data['poster_id'],
                 release_name=data['release_name'],
                 description=data['description'],
-                episodes=data['episodes'],
+                episodes=episodes,  # Сохраняем только число
                 dub=data['dub'],
                 dub_team=data['dub_team'],
                 hashtags=data['hashtags']
             )
-            session.add(anime)
+            
+            print(f"Извлечено количество эпизодов: {episodes}")
 
-            # Коммит изменений в базе данных
+            # Обработка жанров
+            if 'genres' in data and data['genres']:
+                genre_names = data['genres'].split()
+                genres = []
+                for genre_name in genre_names:
+                    genre_result = await session.execute(
+                        select(Genre).where(Genre.name == genre_name)
+                    )
+                    genre = genre_result.scalars().first()
+                    if not genre:
+                        genre = Genre(name=genre_name)
+                        session.add(genre)
+                    genres.append(genre)
+                
+                anime.genres = genres
+
+            session.add(anime)
             await session.commit()
-            print("Аниме успешно добавлено!")
+            print("Аниме и жанры успешно добавлены!")
 
         except Exception as exc:
             print(f"Ошибка: {exc}")
