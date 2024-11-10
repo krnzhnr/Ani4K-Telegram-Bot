@@ -54,7 +54,8 @@ async def add_anime(data: dict):
             session.add(anime)
             await session.commit()
             print(f"Аниме '{anime.release_name}' успешно добавлено!")
-            return anime  # Возвращаем добавленное аниме
+            # return anime  # Возвращаем добавленное аниме
+            return True
 
         except Exception as exc:
             print(f"Ошибка: {exc}")
@@ -92,8 +93,33 @@ async def check_anime_exists(anime_name: str):
         return result.scalars().first()
 
 
+# async def add_episode(anime, episode_info):
+#     async with async_session() as session:
+#         new_episode = Episode(
+#             media_id=episode_info['media_id'],
+#             episode_number=episode_info['episode_number'],
+#             anime_id=anime.id
+#         )
+#         session.add(new_episode)
+#         await session.commit()
+
+
 async def add_episode(anime, episode_info):
     async with async_session() as session:
+        # Проверяем, есть ли уже эпизод с таким же номером для этого аниме
+        existing_episode = await session.execute(
+            select(Episode).filter(
+                Episode.anime_id == anime.id,
+                Episode.episode_number == episode_info['episode_number']
+            )
+        )
+        existing_episode = existing_episode.scalar_one_or_none()
+
+        if existing_episode:
+            # Если эпизод уже существует
+            return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."
+
+        # Если эпизод не найден, добавляем новый
         new_episode = Episode(
             media_id=episode_info['media_id'],
             episode_number=episode_info['episode_number'],
@@ -102,7 +128,8 @@ async def add_episode(anime, episode_info):
         session.add(new_episode)
         await session.commit()
 
-
+        # Успешное добавление
+        return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
 
 # Функция для получения эпизодов для аниме по названию
 async def get_episodes_for_anime(release_name: str):
@@ -125,7 +152,8 @@ async def get_episodes_for_anime(release_name: str):
 
             # Извлечение эпизодов
             result = await session.execute(
-                select(Episode).where(Episode.anime_id == anime.id)
+                # select(Episode).where(Episode.anime_id == anime.id)
+                select(Episode).where(Episode.anime_id == anime.id).order_by(Episode.episode_number) # Извлечение эпизодов, сортированных по номеру эпизода
             )
             episodes = result.scalars().all()
 
