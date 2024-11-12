@@ -98,13 +98,36 @@ def extract_anime_data(post):
             anime_data['episodes'] = episodes_match.group(1)  # Сохраняем как строку, например, "25 эпизодов"
 
 
+    # # 4. Извлечение типа и команды озвучки
+    # if description_end_index + 1 < len(lines):
+    #     dub_info = lines[description_end_index + 1]
+    #     if ',' in dub_info:
+    #         anime_data['dub'], anime_data['dub_team'] = map(str.strip, dub_info.split(',', 1))
+    #     else:
+    #         anime_data['dub'] = dub_info
+
+
+# Маппинг для перевода типа озвучки на английский
+    dub_translation = {
+        "Дубляж": "dubbed",
+        "Закадровая озвучка": "voiceover"
+    }
+
     # 4. Извлечение типа и команды озвучки
     if description_end_index + 1 < len(lines):
-        dub_info = lines[description_end_index + 1]
+        dub_info = lines[description_end_index + 1].strip()
+        
         if ',' in dub_info:
             anime_data['dub'], anime_data['dub_team'] = map(str.strip, dub_info.split(',', 1))
         else:
             anime_data['dub'] = dub_info
+
+        # Преобразование типа озвучки в английский формат
+        if "озвучка" in anime_data['dub'].lower():
+            anime_data['dub'] = "voiceover"
+        elif anime_data['dub'] in dub_translation:
+            anime_data['dub'] = dub_translation[anime_data['dub']]
+
 
     # 5. Извлечение жанров и хэштегов
     hashtags = [line for line in lines if line.startswith('#')]

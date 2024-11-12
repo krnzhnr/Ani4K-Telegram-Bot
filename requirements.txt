@@ -20,3 +20,4 @@ sqlalchemy
 sqlalchemy[asyncio]
 asyncpg
 python-dotenv
+aiogram_dialog
