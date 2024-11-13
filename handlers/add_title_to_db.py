@@ -14,22 +14,67 @@ class AddTitleToDatabase(StatesGroup):
     get_announcement = State()
 
 
-@router.message(Command('add_title'))
-async def episodes_command(
-    message: types.Message,
-    state: FSMContext
-    ):
-    await message.answer(
-        'Перешли пост с анонсом.'
-    )
-    await state.set_state(AddTitleToDatabase.get_announcement)
+# @router.message(Command('add_title'))
+# @router.message(F.photo & F.caption)
+# # @router.callback_query
+# async def add_title_from_announce(
+#     message: types.Message,
+#     state: FSMContext
+#     ):
+#     await message.answer(
+#         'Перешли пост с анонсом.'
+#     )
+#     await state.set_state(AddTitleToDatabase.get_announcement)
+
+# ОБРАБОТКА ЧЕРЕЗ СОСТОЯНИЕ
+
+# @router.message(AddTitleToDatabase.get_announcement, F.photo & F.caption)
+# async def getting_announcement(
+#     message: Message,
+#     state: FSMContext,
+# ):
+#     if message.photo:
+#         poster_img = message.photo[-1]
+#     else:
+#         await message.answer(
+#             'Не удалось найти изображение в сообщении.'
+#         )
+
+#     post = {
+#         'poster_id': poster_img.file_id,
+#         'message': message.caption
+#     }
 
 
-@router.message(AddTitleToDatabase.get_announcement, F.photo & F.caption)
+#     anime_data = extract_anime_data(post)
+#     print(anime_data)
+
+#     try:
+#         result = await add_anime(anime_data)
+
+#         if isinstance(result, Anime):
+#             # Если аниме существует, возвращаем сообщение
+#             await message.answer(
+#                 f"❗️ Аниме с названием '{result.release_name}' уже существует."
+#             )
+#         else:
+#             # Если аниме добавлено, возвращаем сообщение об успехе
+#             await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
+#             await state.clear()
+
+#     except Exception as exc:
+#         print(exc)
+#         await message.answer(
+#             f'При добавлении произошла ошибка:\n\n{exc}'
+#         )
+
+
+
+#ВРЕМЕННАЯ РЕАЛИЗАЦИЯ ДЛЯ БЫСТРОГО ДОБАВЛЕНИЯ РЕЛИЗОВ В БАЗУ
+@router.message(F.photo & F.caption)
 async def getting_announcement(
-    message: Message,
-    state: FSMContext,
-):
+    message: Message
+    ):
     if message.photo:
         poster_img = message.photo[-1]
     else:
@@ -57,13 +102,13 @@ async def getting_announcement(
         else:
             # Если аниме добавлено, возвращаем сообщение об успехе
             await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
-            await state.clear()
-
     except Exception as exc:
         print(exc)
         await message.answer(
             f'При добавлении произошла ошибка:\n\n{exc}'
         )
+
+
 
 def extract_anime_data(post):
     message = post['message']

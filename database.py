@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import Anime, Genre, Episode, async_session
 from sqlalchemy.orm import selectinload
+from typing import List, Dict
 import re
 
 async def get_session():
@@ -93,15 +94,6 @@ async def check_anime_exists(anime_name: str):
         return result.scalars().first()
 
 
-# async def add_episode(anime, episode_info):
-#     async with async_session() as session:
-#         new_episode = Episode(
-#             media_id=episode_info['media_id'],
-#             episode_number=episode_info['episode_number'],
-#             anime_id=anime.id
-#         )
-#         session.add(new_episode)
-#         await session.commit()
 
 
 async def add_episode(anime, episode_info):
@@ -166,3 +158,11 @@ async def get_episodes_for_anime(release_name: str):
     except Exception as exc:
         print(f"Ошибка при извлечении серий: {exc}")
         return f"Произошла ошибка: {exc}"
+
+
+# Асинхронное получение списка аниме из базы данных с их ID
+async def get_anime_list() -> List[Dict]:
+    async with async_session() as session:
+        result = await session.execute(select(Anime.id, Anime.release_name))
+        anime_list = [{"id": row[0], "name": row[1]} for row in result.fetchall()]
+    return anime_list

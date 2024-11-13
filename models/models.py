@@ -4,8 +4,25 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from config_reader import config
 
 # Инициализация базы данных
-engine = create_async_engine(config.database_url, echo=True)
+# engine = create_async_engine(config.database_url, echo=True)
+# Base = declarative_base()
+# async_session = async_sessionmaker(
+#     bind=engine,
+#     class_=AsyncSession,
+#     expire_on_commit=False,
+#     future=True
+# )
+
+# Инициализация базы данных SQLite
+engine = create_async_engine(
+    config.database_url, 
+    echo=True,
+    connect_args={"check_same_thread": False}  # Эта опция нужна для SQLite
+)
+
 Base = declarative_base()
+
+# Инициализация асинхронной сессии
 async_session = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
