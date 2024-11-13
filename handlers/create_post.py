@@ -378,7 +378,11 @@ async def post_publish(
         print(f'Data in create_post: {anime_data}')
 
         # Сохраняем anime_data в базу данных
-        await add_anime(anime_data)  # Вызов функции добавления в базу данных
+        if callback.message.chat.id == ADMIN_ID:
+            await add_anime(anime_data)  # Вызов функции добавления в базу данных
+        else:
+            print(f'Пропущена запись в базу, запостил {callback.message.chat.full_name}')
+            pass
 
         sent_message = await bot.send_photo(
             chat_id=post['channel_id'],

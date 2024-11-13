@@ -5,9 +5,15 @@ from sqlalchemy.orm import selectinload
 from typing import List, Dict
 import re
 
+
+
+
 async def get_session():
     async with async_session() as session:
         yield session
+
+
+
 
 async def add_anime(data: dict):
     async with async_session() as session:
@@ -65,6 +71,7 @@ async def add_anime(data: dict):
 
 
 
+
 async def add_episodes_to_anime(anime: Anime, episode_data_list: list):
     async with async_session() as session:
         try:
@@ -84,6 +91,7 @@ async def add_episodes_to_anime(anime: Anime, episode_data_list: list):
             await session.rollback()
             raise
     
+
 
 
 async def check_anime_exists(anime_name: str):
@@ -123,6 +131,9 @@ async def add_episode(anime, episode_info):
         # Успешное добавление
         return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
 
+
+
+
 # Функция для получения эпизодов для аниме по названию
 async def get_episodes_for_anime(release_name: str):
     try:
@@ -159,10 +170,3 @@ async def get_episodes_for_anime(release_name: str):
         print(f"Ошибка при извлечении серий: {exc}")
         return f"Произошла ошибка: {exc}"
 
-
-# Асинхронное получение списка аниме из базы данных с их ID
-async def get_anime_list() -> List[Dict]:
-    async with async_session() as session:
-        result = await session.execute(select(Anime.id, Anime.release_name))
-        anime_list = [{"id": row[0], "name": row[1]} for row in result.fetchall()]
-    return anime_list

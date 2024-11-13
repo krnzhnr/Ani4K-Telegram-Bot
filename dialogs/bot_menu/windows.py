@@ -1,7 +1,7 @@
 from aiogram_dialog import Window, Data, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Back, Next, Row, SwitchTo, Cancel, ScrollingGroup, Button, Select
 from aiogram_dialog.widgets.text import Format, Const
-from .getters import get_buttons_data
+from .getters import get_anime_data, get_episodes_data
 from .states import BotMenu
 from typing import List
 
@@ -10,40 +10,53 @@ from typing import List
 PAGE_SIZE = 10
 
 
-# Асинхронное создание кнопок тайтлов
-async def btns_creator(anime_list: List[str]):
-    buttons = [Button(Const(anime), id=anime) for anime in anime_list]
-    return buttons
+# # Создание Select для отображения кнопок на основе данных
+# anime_selector = Select(
+#     text=Format("{item[name]}"),  # Текст кнопки будет названием аниме
+#     id="anime_button",
+#     item_id_getter=lambda item: item["id"],  # Используем ID из базы данных
+#     items="anime_list",  # Используем данные из getter
+# )
 
 
-# Создаём кнопки динамически на основе данных из getter
-def create_buttons(data):
-    return [Button(Const(item["text"]), id=item["id"]) for item in data["buttons"]]
-
-
-# Создание Select для отображения кнопок на основе данных
-anime_selector = Select(
-    text=Format("{item[name]}"),  # Текст кнопки будет названием аниме
-    id="anime_button",
-    item_id_getter=lambda item: item["id"],  # Используем ID из базы данных
-    items="anime_list",  # Используем данные из getter
-)
-
+# # Создание окна
+# def titles_window():
+#     return Window(
+#         Const("Выберите аниме:"),
+#         ScrollingGroup(
+#              # Создаем Select, используя уже обработанный список с названиями
+#             Select(
+#                 text=Format("{item[name]}"),  # Отображаем уже очищенное имя
+#                 id="anime_button",
+#                 item_id_getter=lambda item: item["id"],  # ID из базы данных
+#                 items="anime_list",  # Данные будут переданы через геттер
+#             ),
+#             id="titles",
+#             width=1,
+#             height=PAGE_SIZE,
+#         ),
+#         Cancel(Const("Закрыть")),
+#         state=BotMenu.TITLES,
+#         getter=get_anime_data  # Асинхронный геттер для подгрузки данных
+#     )
 
 # Создание окна
 def titles_window():
     return Window(
         Const("Выберите аниме:"),
         ScrollingGroup(
-            anime_selector,
-            id='titles',
+            Select(
+                text=Format("[{item[available_episodes]}/{item[episodes_count]}] {item[name]}"),
+                id="anime_button",
+                item_id_getter=lambda item: item["id"],
+                items="anime_list",
+            ),
+            id="titles",
             width=1,
-            height=PAGE_SIZE
+            height=PAGE_SIZE,
         ),
-        Cancel(Const('Закрыть')),
+        Cancel(Const("Закрыть")),
         state=BotMenu.TITLES,
-        getter=get_buttons_data  # Асинхронный getter для подгрузки данных
+        getter=get_anime_data
     )
-
-
 

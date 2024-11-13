@@ -104,9 +104,10 @@ async def getting_announcement(
             await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
     except Exception as exc:
         print(exc)
-        await message.answer(
-            f'При добавлении произошла ошибка:\n\n{exc}'
-        )
+        pass
+        # await message.answer(
+        #     f'При добавлении произошла ошибка:\n\n{exc}'
+        # )
 
 
 
