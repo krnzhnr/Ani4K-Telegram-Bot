@@ -3,6 +3,7 @@ from aiogram_dialog.widgets.kbd import Back, Next, Row, SwitchTo, Cancel, Scroll
 from aiogram_dialog.widgets.text import Format, Const
 from .getters import get_anime_data, get_episodes_data
 from .states import BotMenu
+from .selected import on_title_chosen
 from typing import List
 
 
@@ -46,10 +47,11 @@ def titles_window():
         Const("Выберите аниме:"),
         ScrollingGroup(
             Select(
-                text=Format("[{item[available_episodes]}/{item[episodes_count]}] {item[name]}"),
+                text = Format("[{item[available_episodes]}/{item[episodes_count]}] {item[name]}"),
                 id="anime_button",
                 item_id_getter=lambda item: item["id"],
                 items="anime_list",
+                on_click=on_title_chosen  # Переход при выборе
             ),
             id="titles",
             width=1,
@@ -60,3 +62,22 @@ def titles_window():
         getter=get_anime_data
     )
 
+def episodes_window():
+    return Window(
+        Format("Выберите эпизод:"),
+        ScrollingGroup(
+            Select(
+                text=Format("{item[episode_number]} эпизод"),  # Отображаем номер эпизода
+                id="episode_button",
+                item_id_getter=lambda item: item["id"],  # Получаем ID эпизода
+                items="episode_list",  # Мы берем данные из dialog_data
+            ),
+            id="episodes",
+            width=1,
+            height=PAGE_SIZE,
+        ),
+        Back(Const('<<< Назад к списку тайтлов')),
+        Cancel(Format("Закрыть")),
+        state=BotMenu.EPISODES,
+        getter=get_episodes_data  # Подгрузка данных эпизодов
+    )

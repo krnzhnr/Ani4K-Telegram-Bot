@@ -6,7 +6,8 @@ from . import windows
 def bot_menu_dialogs():
     return [
         Dialog(
-            windows.titles_window()
+            windows.titles_window(),
+            windows.episodes_window()
             # on_process_result=windows.on_process_result,
         )
         # Dialog(
