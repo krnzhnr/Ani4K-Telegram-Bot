@@ -84,12 +84,19 @@ async def get_anime_data(dialog_manager: DialogManager, **kwargs) -> Dict:
 async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
     anime_id = dialog_manager.current_context().dialog_data.get('anime_id')
     if not anime_id:
-        return {'episode_list': [], 'poster': None, 'anime_name': ''}
+        return {
+            'episode_list': [], 
+            'poster': None, 
+            'anime_name': '', 
+            'anime_description': '', 
+            'voice_type': '', 
+            'voice_team': ''
+        }
 
     async with async_session() as session:
-        # Извлекаем название аниме и постер
+        # Извлекаем название, постер, описание, тип озвучки и команду озвучки
         anime_result = await session.execute(
-            select(Anime.release_name, Anime.poster_id)
+            select(Anime.release_name, Anime.poster_id, Anime.description, Anime.dub, Anime.dub_team)
             .filter(Anime.id == anime_id)
         )
         anime_data = anime_result.fetchone()
@@ -97,6 +104,15 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
         # Разделяем название по слешу, если он есть
         release_name = anime_data[0].split('/')[0] if anime_data else ""
         poster_id = anime_data[1] if anime_data else None
+        
+        # Обрезаем описание до 750 символов и добавляем многоточие, если оно слишком длинное
+        description = anime_data[2] if anime_data else "Описание отсутствует"
+        if len(description) > 750:
+            description = description[:750].rstrip() + "..."
+        
+        # Определяем тип озвучки
+        voice_type = "Дубляж" if anime_data[3] == 'dubbed' else "Закадровая озвучка"
+        voice_team = anime_data[4] if anime_data[4] else "Неизвестная команда"
 
         # Извлекаем список эпизодов
         episode_result = await session.execute(
@@ -117,7 +133,10 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
     return {
         'episode_list': episode_list,
         'poster': poster,
-        'anime_name': release_name  # Название без части после "/"
+        'anime_name': release_name,
+        'anime_description': description,
+        'voice_type': voice_type,
+        'voice_team': voice_team
     }
 
 

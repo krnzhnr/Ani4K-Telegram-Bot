@@ -70,7 +70,12 @@ def titles_window():
 def episodes_window():
     return Window(
         DynamicMedia("poster"),  # Отображаем постер тайтла
-        Format("<b><u>{anime_name}</u></b>\n\nЭпизоды:"),  # Динамическое отображение обрезанного названия
+        Format(
+            "<b><u>{anime_name}</u></b>\n\n"
+            "<blockquote expandable>{anime_description}</blockquote>\n\n"
+            "{voice_type}, {voice_team}\n\n"
+            "Эпизоды:"
+        ),  # Динамическое отображение информации о тайтле
         ScrollingGroup(
             Select(
                 text=Format("{item[episode_number]} эпизод"),
@@ -84,7 +89,6 @@ def episodes_window():
             height=PAGE_SIZE,
         ),
         Back(Const('<<< Назад к тайтлам')),
-        # Cancel(Const("Закрыть")),
         state=BotMenu.EPISODES,
         getter=get_episodes_data
     )
