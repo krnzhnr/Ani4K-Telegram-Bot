@@ -21,10 +21,10 @@ from typing import Any
 
 
 async def on_title_chosen(c: CallbackQuery, widget: Any, manager: DialogManager, item_id: str):
-    # Сохраняем ID выбранного аниме
+    # Сохраняем ID выбранного аниме в контексте
     ctx = manager.current_context()
-    ctx.dialog_data['anime_id'] = item_id  # Сохраняем ID аниме в контексте
-    
+    ctx.dialog_data['anime_id'] = item_id
+
     # Переход к окну выбора эпизодов
     await manager.switch_to(BotMenu.EPISODES)
 

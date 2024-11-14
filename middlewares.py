@@ -11,10 +11,10 @@ class PrivateChatMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
-        # Проверка, что сообщение пришло из личного чата
-        if isinstance(event, Message) and event.chat.type != 'private':
-            # Если не личный чат, просто игнорируем обработку
-            pass
-            # return await event.answer("❌ Этот бот работает только в личных сообщениях.")
-        # Если все ок, передаем в следующий обработчик
+        # Проверка, что сообщение пришло из личного чата или канала
+        if isinstance(event, Message) and event.chat.type in ['group', 'supergroup']:
+            # Если это группа или супергруппа, игнорируем сообщение
+            return  # Сообщение не передается дальше
+        
+        # Если сообщение из личного чата или канала, передаем в следующий обработчик
         return await handler(event, data)

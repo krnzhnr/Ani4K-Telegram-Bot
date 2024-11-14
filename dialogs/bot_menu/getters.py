@@ -82,19 +82,43 @@ async def get_anime_data(dialog_manager: DialogManager, **kwargs) -> Dict:
 
 
 async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
-    anime_id = dialog_manager.current_context().dialog_data.get('anime_id')  # Получаем anime_id из контекста
+    anime_id = dialog_manager.current_context().dialog_data.get('anime_id')
     if not anime_id:
-        return {'episode_list': []}  # Если нет anime_id, возвращаем пустой список эпизодов
+        return {'episode_list': [], 'poster': None, 'anime_name': ''}
 
     async with async_session() as session:
-        result = await session.execute(
+        # Извлекаем название аниме и постер
+        anime_result = await session.execute(
+            select(Anime.release_name, Anime.poster_id)
+            .filter(Anime.id == anime_id)
+        )
+        anime_data = anime_result.fetchone()
+        
+        # Разделяем название по слешу, если он есть
+        release_name = anime_data[0].split('/')[0] if anime_data else ""
+        poster_id = anime_data[1] if anime_data else None
+
+        # Извлекаем список эпизодов
+        episode_result = await session.execute(
             select(Episode.id, Episode.episode_number)
             .filter(Episode.anime_id == anime_id)
-            .order_by(Episode.episode_number)  # Сортируем по номеру эпизода
+            .order_by(Episode.episode_number)
         )
-        episode_list = [{"id": row[0], "episode_number": row[1]} for row in result.fetchall()]
-    
-    return {'episode_list': episode_list}  # Возвращаем отсортированный список эпизодов
+        episode_list = [{"id": row[0], "episode_number": row[1]} for row in episode_result.fetchall()]
+
+    # Создаём MediaAttachment для постера
+    poster = None
+    if poster_id:
+        poster = MediaAttachment(
+            type=ContentType.PHOTO,
+            file_id=MediaId(poster_id)
+        )
+
+    return {
+        'episode_list': episode_list,
+        'poster': poster,
+        'anime_name': release_name  # Название без части после "/"
+    }
 
 
 
@@ -114,13 +138,18 @@ async def get_episode_data(dialog_manager: DialogManager, **kwargs):
         episode = result.fetchone()
         
         if episode:
+            # Обрезаем название аниме до первого слэша
+            release_name = episode.release_name.split('/')[0]
+            
+            # Создаем объект MediaAttachment для видео
             media = MediaAttachment(
                 type=ContentType.VIDEO,
                 file_id=MediaId(episode.media_id)
             )
+            
             return {
                 'video': media,
-                'anime_name': episode.release_name,
+                'anime_name': release_name,  # Обрезаем название
                 'episode_number': episode.episode_number
             }
     

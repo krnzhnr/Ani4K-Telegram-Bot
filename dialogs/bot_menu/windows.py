@@ -10,7 +10,7 @@ from typing import List
 
 
 # Максимальное количество кнопок на странице
-PAGE_SIZE = 13
+PAGE_SIZE = 12
 
 
 # # Создание Select для отображения кнопок на основе данных
@@ -64,30 +64,37 @@ def titles_window():
         getter=get_anime_data
     )
 
+
+
+
 def episodes_window():
     return Window(
-        Format("Выберите эпизод:"),
+        DynamicMedia("poster"),  # Отображаем постер тайтла
+        Format("<b><u>{anime_name}</u></b>\n\nЭпизоды:"),  # Динамическое отображение обрезанного названия
         ScrollingGroup(
             Select(
                 text=Format("{item[episode_number]} эпизод"),
                 id="episode_button",
                 item_id_getter=lambda item: item["id"],
                 items="episode_list",
-                on_click=on_episode_chosen  # Переход при выборе
+                on_click=on_episode_chosen
             ),
             id="episodes",
             width=1,
             height=PAGE_SIZE,
         ),
         Back(Const('<<< Назад к тайтлам')),
-        Cancel(Const("Закрыть")),
+        # Cancel(Const("Закрыть")),
         state=BotMenu.EPISODES,
         getter=get_episodes_data
     )
 
+
+
+
 def episode_window():
     return Window(
-        Format("<b>{anime_name}</b>\n\n{episode_number} эпизод"),
+        Format("<b><u>{anime_name}</u></b>\n\n{episode_number} эпизод"),
         DynamicMedia("video"),
         Back(Const("<<< Назад к эпизодам")),
         state=BotMenu.EPISODE,
