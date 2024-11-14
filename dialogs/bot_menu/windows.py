@@ -1,14 +1,16 @@
 from aiogram_dialog import Window, Data, DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Back, Next, Row, SwitchTo, Cancel, ScrollingGroup, Button, Select
 from aiogram_dialog.widgets.text import Format, Const
-from .getters import get_anime_data, get_episodes_data
+from aiogram_dialog.widgets.media import DynamicMedia
+from aiogram.enums import ContentType
+from .getters import get_anime_data, get_episodes_data, get_episode_data
 from .states import BotMenu
-from .selected import on_title_chosen
+from .selected import on_title_chosen, on_episode_chosen
 from typing import List
 
 
 # Максимальное количество кнопок на странице
-PAGE_SIZE = 10
+PAGE_SIZE = 13
 
 
 # # Создание Select для отображения кнопок на основе данных
@@ -67,17 +69,27 @@ def episodes_window():
         Format("Выберите эпизод:"),
         ScrollingGroup(
             Select(
-                text=Format("{item[episode_number]} эпизод"),  # Отображаем номер эпизода
+                text=Format("{item[episode_number]} эпизод"),
                 id="episode_button",
-                item_id_getter=lambda item: item["id"],  # Получаем ID эпизода
-                items="episode_list",  # Мы берем данные из dialog_data
+                item_id_getter=lambda item: item["id"],
+                items="episode_list",
+                on_click=on_episode_chosen  # Переход при выборе
             ),
             id="episodes",
             width=1,
             height=PAGE_SIZE,
         ),
-        Back(Const('<<< Назад к списку тайтлов')),
-        Cancel(Format("Закрыть")),
+        Back(Const('<<< Назад к тайтлам')),
+        Cancel(Const("Закрыть")),
         state=BotMenu.EPISODES,
-        getter=get_episodes_data  # Подгрузка данных эпизодов
+        getter=get_episodes_data
+    )
+
+def episode_window():
+    return Window(
+        Format("<b>{anime_name}</b>\n\n{episode_number} эпизод"),
+        DynamicMedia("video"),
+        Back(Const("<<< Назад к эпизодам")),
+        state=BotMenu.EPISODE,
+        getter=get_episode_data
     )

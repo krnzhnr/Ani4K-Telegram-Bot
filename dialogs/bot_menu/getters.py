@@ -1,6 +1,8 @@
 from sqlalchemy.future import select
 from sqlalchemy import func
 from aiogram_dialog import DialogManager
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
+from aiogram.enums import ContentType
 from typing import Dict, List
 from models.models import Anime, Episode, async_session
 
@@ -93,3 +95,33 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
         episode_list = [{"id": row[0], "episode_number": row[1]} for row in result.fetchall()]
     
     return {'episode_list': episode_list}  # Возвращаем отсортированный список эпизодов
+
+
+
+
+async def get_episode_data(dialog_manager: DialogManager, **kwargs):
+    episode_id = dialog_manager.current_context().dialog_data.get("episode_id")
+    
+    if not episode_id:
+        return {'video': None}
+    
+    async with async_session() as session:
+        result = await session.execute(
+            select(Episode.media_id, Episode.episode_number, Anime.release_name)
+            .join(Anime, Anime.id == Episode.anime_id)
+            .filter(Episode.id == episode_id)
+        )
+        episode = result.fetchone()
+        
+        if episode:
+            media = MediaAttachment(
+                type=ContentType.VIDEO,
+                file_id=MediaId(episode.media_id)
+            )
+            return {
+                'video': media,
+                'anime_name': episode.release_name,
+                'episode_number': episode.episode_number
+            }
+    
+    return {'video': None}

@@ -27,3 +27,9 @@ async def on_title_chosen(c: CallbackQuery, widget: Any, manager: DialogManager,
     
     # Переход к окну выбора эпизодов
     await manager.switch_to(BotMenu.EPISODES)
+
+
+async def on_episode_chosen(c: CallbackQuery, widget: Any, manager: DialogManager, item_id: str):
+    # Сохраняем выбранный episode_id в контексте
+    manager.current_context().dialog_data['episode_id'] = item_id
+    await manager.switch_to(BotMenu.EPISODE)  # Переходим к окну с выбранным эпизодом
