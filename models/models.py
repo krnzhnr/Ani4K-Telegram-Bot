@@ -1,9 +1,12 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from config_reader import config
+
+# Определим часовой пояс для Беларуси
+belarus_timezone = timezone(timedelta(hours=3))
 
 # Инициализация базы данных
 # engine = create_async_engine(config.database_url, echo=True)
@@ -71,7 +74,7 @@ class Episode(Base):
     media_id = Column(String(255), nullable=False)
     episode_number = Column(Integer, nullable=False)
     anime_id = Column(Integer, ForeignKey('anime.id'), nullable=False)
-    added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    added_at = Column(DateTime, default=lambda: datetime.now(belarus_timezone))  # Время с учетом часового пояса
 
     anime = relationship("Anime", back_populates="episodes")
 async def init_db():
