@@ -20,17 +20,11 @@ async def main():
     # Регистрируем middleware
     dp.message.middleware(PrivateChatMiddleware())
 
-
     dp.include_routers(start.router, create_post.router, create_notification.router, menu.router, auto_reposter.router, get_episodes.router, add_episodes_to_db.router, add_title_to_db.router, start_dialog.router)
     
     # Настройка aiogram_dialog
     setup_dialogs_fun(dp)
     setup_dialogs(dp)
-
-    # # Регистрация всех диалогов
-    # for dialog in dialogs:
-    #     dp.include_router(dialog)
-
 
     await bot.delete_webhook(drop_pending_updates=True)
     print('Бот запущен!')

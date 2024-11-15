@@ -47,9 +47,6 @@ def create_noti_howmuchepisedes_selection_kb():
     return builder.as_markup()
 
 
-
-
-
 def create_noti_channel_test():
     builder = InlineKeyboardBuilder()
     builder.button(

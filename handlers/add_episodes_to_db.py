@@ -8,7 +8,6 @@ import re
 router = Router()
 
 
-
 @router.message(F.video & F.caption)
 async def handle_video_message(message: Message, bot: Bot):
     # Извлекаем ID видео и подпись
@@ -32,14 +31,10 @@ async def handle_video_message(message: Message, bot: Bot):
     # Проверка наличия аниме в базе
     anime = await check_anime_exists(anime_name)
     if anime:
-        # await add_episode(anime, episode_info)
-        # await message.answer(f"Эпизод {episode_info['episode_number']} для '{anime_name}' успешно добавлен.")
         result_message = await add_episode(anime, episode_info)  # получаем сообщение из add_episode
         await message.answer(result_message)  # отправляем его в чат
     else:
         await message.answer(f"Аниме '{anime_name}' не найдено в базе. Сначала добавьте его.")
-
-      
 
 
 def extract_episode_info(caption: str):

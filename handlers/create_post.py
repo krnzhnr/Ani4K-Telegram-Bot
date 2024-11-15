@@ -18,8 +18,6 @@ ADMIN_ID = 491203291
 CHAT_ID = '-1002104882531'  # ID чата
 
 
-
-
 class PostCreation(StatesGroup):
     channel_selection = State()
     add_poster = State()
@@ -31,8 +29,6 @@ class PostCreation(StatesGroup):
     # add_hashtags = State()
 
 
-
-
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'create_announcement'))
 async def create_post_channel_selection(
     callback: types.CallbackQuery,
@@ -42,8 +38,6 @@ async def create_post_channel_selection(
     await callback.message.edit_text('Выбери канал для поста.', reply_markup=create_post_channel_selection_kb())
     await state.set_state(PostCreation.channel_selection)
     await callback.answer()
-
-
 
 
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'main_channel'))
@@ -70,8 +64,6 @@ async def main_channel_selected(
         await callback.answer()
 
 
-
-
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'test_channel'))
 async def test_channel_selected(
     callback: types.CallbackQuery,
@@ -86,21 +78,6 @@ async def test_channel_selected(
     )
     await state.set_state(PostCreation.add_poster)
     await callback.answer()
-
-
-
-
-# @router.callback_query(CreatePostCallbackActions.filter(F.action == 'start'))
-# async def create_post_start(
-#     callback: types.CallbackQuery,
-#     callback_data: CreatePostCallbackActions,
-#     state: FSMContext
-# ):
-#     await callback.message.edit_text('Пришли мне постер.', reply_markup=creation_cancel_kb())
-#     await state.set_state(PostCreation.add_poster)
-#     await callback.answer()
-
-
 
 
 # ПОЛУЧЕНИЕ ПОСТЕРА
@@ -123,8 +100,6 @@ async def add_poster(message: Message, state: FSMContext, poster_img: PhotoSize,
     await state.set_state(PostCreation.add_name)
 
 
-
-
 # ПОЛУЧЕНИЕ НАЗВАНИЯ
 
 @router.message(
@@ -143,8 +118,6 @@ async def add_name(message: Message, state: FSMContext, bot: Bot):
         [message.message_id, message.message_id - 1]
     )    
     await state.set_state(PostCreation.add_description)
-
-
 
 
 # ПОЛУЧЕНИЕ ОПИСАНИЯ
@@ -177,8 +150,6 @@ async def add_descriprion(message: Message, state: FSMContext, bot: Bot):
         )
 
 
-
-
 # ПОЛУЧЕНИЕ КОЛИЧЕСТВА ЭПИЗОДОВ
 
 @router.message(
@@ -197,8 +168,6 @@ async def add_episodes(message: Message, state: FSMContext, bot: Bot):
         message.chat.id,
         [message.message_id, message.message_id - 1]
     )
-
-
 
 
 # ОБРАБОТКА НАЖАТИЯ КНОПКИ "ДУБЛИРОВАННЫЙ"
@@ -223,8 +192,6 @@ async def dub_callback(
     )
 
 
-
-
 # ОБРАБОТКА НАЖАТИЯ КНОПКИ "ЗАКАДРОВАЯ"
 
 @router.callback_query(ChoiceDubCallbackActions.filter(F.dub == 'voiceover'))
@@ -247,8 +214,6 @@ async def voiceover_callback(
     )
 
 
-
-
 # ВВОД НАЗВАНИЯ КОМАНДЫ ОЗВУЧКИ
 
 @router.message(
@@ -268,8 +233,6 @@ async def add_dub(message: Message, state: FSMContext, bot: Bot):
         [message.message_id, message.message_id - 1]
     )
     await state.set_state(PostCreation.add_genres_and_topics)
-
-
 
 
 # ВВОД ЖАНРОВ И ТЕМ + ЗАВЕРШЕНИЕ РАБОТЫ КОНЕЧНОГО АВТОМАТА
@@ -315,8 +278,6 @@ async def add_genres_and_topics(message: Message, state: FSMContext, bot: Bot):
         await message.answer(str(exc))
 
 
-
-
 # СБОРКА ХЭШТЕГОВ
 
 def create_final_hashtags():
@@ -340,8 +301,6 @@ def create_final_hashtags():
     print(post['hashtags'])
 
 
-
-
 # СБОРКА ПОСТА
 
 def post_assembly():
@@ -352,8 +311,6 @@ def post_assembly():
 
     ready_post = f'<b><u>{post['release_name']}</u></b>\n\n<i><blockquote expandable>{post['description']}</blockquote></i>\n\n{post['episodes']}\n\n{dub_type} {post["dub_team"]}\n\n{post['genres_and_topics']}\n\n{post['hashtags']}'
     return ready_post
-
-
 
 
 # ОБРАБОТКА ПУБЛИКАЦИИ
@@ -415,7 +372,6 @@ async def post_publish(
         await callback.answer()
 
 
-
 # ОБРАБОТКА ОТМЕНЫ ГОТОВОГО ПОСТА
 
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'finish_cancel'))
@@ -436,8 +392,6 @@ async def post_cancel(
         [callback.message.message_id, callback.message.message_id - 1]
     )
     await callback.answer()
-
-
 
 
 # ОБРАБОТКА ОТМЕНЫ В ПРОЦЕССЕ СОЗДАНИЯ

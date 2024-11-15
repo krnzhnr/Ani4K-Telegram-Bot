@@ -12,12 +12,14 @@ def start_kb():
     )
     return builder.as_markup(resize_keyboard=True)
 
+
 def menu_kb():
     builder = InlineKeyboardBuilder()
     builder.button(
         text='Создать', callback_data=CreatePostCallbackActions(action='create')
     )
     return builder.as_markup()
+
 
 def create_type_select_kb():
     builder = InlineKeyboardBuilder()
@@ -28,6 +30,7 @@ def create_type_select_kb():
         text='Уведомление', callback_data=CreateNotificationCallbackActions(action='create_notification')
     )
     return builder.as_markup()
+
 
 def creation_cancel_kb():
     builder = InlineKeyboardBuilder()

@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     
     # Добавляем параметр для подключения к базе данных (DATABASE_URL)
     database_url: str  # Просто строка, потому что мы не скрываем её (не секретная информация)
+    
+    ADMIN_ID: int
+    
+    CHAT_ID: str
 
     # В модели настроек указываем файл .env для загрузки и его кодировку
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')

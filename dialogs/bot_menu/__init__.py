@@ -9,10 +9,5 @@ def bot_menu_dialogs():
             windows.titles_window(),
             windows.episodes_window(),
             windows.episode_window()
-            # on_process_result=windows.on_process_result,
         )
-        # Dialog(
-        #     windows.buy_product_window(),
-        #     windows.confirm_buy_window(),
-        # ),
     ]

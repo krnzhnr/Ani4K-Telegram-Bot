@@ -21,7 +21,6 @@ ADMIN_ID = 491203291
 CHAT_ID = '-1002104882531'  # ID чата
 
 
-
 class NotificationCreation(StatesGroup):
     channel_selection = State()
     release_type_selection = State()
@@ -31,8 +30,6 @@ class NotificationCreation(StatesGroup):
     add_caption = State()
     add_poster = State()
     add_link = State()
-
-
 
 
 # ОТПРАВКА ВЫБОРА КАНАЛА
@@ -48,8 +45,6 @@ async def create_notification_channel_selection(
     )
     await state.set_state(NotificationCreation.channel_selection)
     await callback.answer()
-
-
 
 
 # ВЫБОР КАНАЛА
@@ -78,8 +73,6 @@ async def main_channel_selected(
         await callback.answer()
 
 
-
-
 # ВЫБОР ТИПА РЕЛИЗА
 
 @router.callback_query(CreateNotificationCallbackActions.filter(F.action == 'noti_test_channel'))
@@ -96,8 +89,6 @@ async def test_channel_selected(
     )
     await state.set_state(NotificationCreation.release_type_selection)
     await callback.answer()
-
-
 
 
 # ПОЛУЧЕНИЕ ТИПА РЕЛИЗА: ФИЛЬМ
@@ -118,8 +109,6 @@ async def create_noti_film_selected(
     await callback.answer()
 
 
-
-
 # ПОЛУЧЕНИЕ ТИПА РЕЛИЗА: СЕРИАЛ
 
 @router.callback_query(CreateNotificationCallbackActions.filter(F.action == 'series_selected'))
@@ -136,8 +125,6 @@ async def create_noti_film_selected(
     )
     # await state.set_state(NotificationCreation.howMuchEpisodes_selection)
     await callback.answer()
-
-
 
 
 # ВЫБРАН ОДИН ЭПИЗОД
@@ -158,8 +145,6 @@ async def create_noti_one_episode_selected(
     await callback.answer()
 
 
-
-
 # ВЫБРАНО НЕСКОЛЬКО ЭПИЗОДОВ
 
 @router.callback_query(CreateNotificationCallbackActions.filter(F.action == 'many_episodes_selected'))
@@ -176,8 +161,6 @@ async def create_noti_many_episodes_selected(
     )
     await state.set_state(NotificationCreation.add_episodes)
     await callback.answer()
-
-
 
 
 # ПОЛУЧЕНИЕ НОМЕРА ЭПИЗОДА / ЭПИЗОДОВ
@@ -212,8 +195,6 @@ async def get_episodes(
     await state.set_state(NotificationCreation.add_name)
 
 
-
-
 # ПОЛУЧЕНИЕ НАЗВАНИЯ
 
 @router.message(
@@ -236,8 +217,6 @@ async def create_noti_add_name(
         [message.message_id, message.message_id - 1]
     )
     await state.set_state(NotificationCreation.add_poster)
-
-
 
 
 # ПОЛУЧЕНИЕ ПОСТЕРА
@@ -288,8 +267,6 @@ async def create_noti_add_poster(
     await state.clear()
 
 
-
-
 # ПОДБОР ТЕКСТА УВЕДОМЛЕНИЯ
 
 def notification_text_assembly():
@@ -309,7 +286,6 @@ def notification_text_assembly():
             print(f'Текст готового уведомления: {notification_text}')
             return notification_text
             
-
 
 
 # ОБРАБОТКА ПУБЛИКАЦИИ
@@ -351,8 +327,6 @@ async def post_publish(
             text=f'Что-то пошло не так, вот причина:\n\n{exc}'
         )
         await callback.answer()
-
-
 
 
 # ОБРАБОТКА ОТМЕНЫ ГОТОВОГО ПОСТА

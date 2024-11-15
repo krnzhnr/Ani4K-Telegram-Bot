@@ -23,7 +23,6 @@ async def get_menu(message: Message, bot: Bot):
         await bot.delete_message(message.chat.id, message.message_id)
 
 
-
 @router.callback_query(CreatePostCallbackActions.filter(F.action == 'create'))
 async def lets_create(
     callback: types.CallbackQuery,

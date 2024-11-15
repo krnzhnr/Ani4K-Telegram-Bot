@@ -5,7 +5,6 @@ from database import check_anime_exists, add_episode, add_anime
 from models.models import Anime
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-
 import re
 
 router = Router()
@@ -69,7 +68,6 @@ class AddTitleToDatabase(StatesGroup):
 #         )
 
 
-
 #ВРЕМЕННАЯ РЕАЛИЗАЦИЯ ДЛЯ БЫСТРОГО ДОБАВЛЕНИЯ РЕЛИЗОВ В БАЗУ
 @router.message(F.photo & F.caption)
 async def getting_announcement(
@@ -87,7 +85,6 @@ async def getting_announcement(
         'message': message.caption
     }
 
-
     anime_data = extract_anime_data(post)
     print(anime_data)
 
@@ -104,11 +101,9 @@ async def getting_announcement(
             await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
     except Exception as exc:
         print(exc)
-        pass
-        # await message.answer(
-        #     f'При добавлении произошла ошибка:\n\n{exc}'
-        # )
-
+        await message.answer(
+            f'При добавлении произошла ошибка:\n\n{exc}'
+        )
 
 
 def extract_anime_data(post):
@@ -143,17 +138,7 @@ def extract_anime_data(post):
         if episodes_match:
             anime_data['episodes'] = episodes_match.group(1)  # Сохраняем как строку, например, "25 эпизодов"
 
-
-    # # 4. Извлечение типа и команды озвучки
-    # if description_end_index + 1 < len(lines):
-    #     dub_info = lines[description_end_index + 1]
-    #     if ',' in dub_info:
-    #         anime_data['dub'], anime_data['dub_team'] = map(str.strip, dub_info.split(',', 1))
-    #     else:
-    #         anime_data['dub'] = dub_info
-
-
-# Маппинг для перевода типа озвучки на английский
+    # Маппинг для перевода типа озвучки на английский
     dub_translation = {
         "Дубляж": "dubbed",
         "Закадровая озвучка": "voiceover"
@@ -173,7 +158,6 @@ def extract_anime_data(post):
             anime_data['dub'] = "voiceover"
         elif anime_data['dub'] in dub_translation:
             anime_data['dub'] = dub_translation[anime_data['dub']]
-
 
     # 5. Извлечение жанров и хэштегов
     hashtags = [line for line in lines if line.startswith('#')]

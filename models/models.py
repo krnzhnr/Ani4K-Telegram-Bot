@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from datetime import datetime, timezone
+
 from config_reader import config
 
 # Инициализация базы данных
@@ -30,6 +32,7 @@ async_session = async_sessionmaker(
     future=True
 )
 
+
 # Вспомогательная таблица для связи "многие ко многим"
 anime_genre_association = Table(
     "anime_genre_association",
@@ -37,6 +40,7 @@ anime_genre_association = Table(
     Column("anime_id", Integer, ForeignKey("anime.id"), primary_key=True),
     Column("genre_id", Integer, ForeignKey("genres.id"), primary_key=True)
 )
+
 
 class Anime(Base):
     __tablename__ = "anime"
@@ -52,6 +56,7 @@ class Anime(Base):
     genres = relationship("Genre", secondary=anime_genre_association, back_populates="anime")
     episodes = relationship("Episode", back_populates="anime")
 
+
 class Genre(Base):
     __tablename__ = "genres"
     id = Column(Integer, primary_key=True)
@@ -59,15 +64,16 @@ class Genre(Base):
 
     anime = relationship("Anime", secondary=anime_genre_association, back_populates="genres")
 
+
 class Episode(Base):
     __tablename__ = "episodes"
     id = Column(Integer, primary_key=True)
     media_id = Column(String(255), nullable=False)
     episode_number = Column(Integer, nullable=False)
     anime_id = Column(Integer, ForeignKey('anime.id'), nullable=False)
+    added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     anime = relationship("Anime", back_populates="episodes")
-
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

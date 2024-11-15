@@ -8,7 +8,7 @@ from dialogs.bot_menu.states import BotMenu
 router = Router()
 
 
-@router.message(Command('menu'))
+@router.message(Command('start'))
 async def get_menu(message: Message, dialog_manager: DialogManager):
     # Мы начинаем диалог с первого состояния
     await dialog_manager.start(BotMenu.TITLES, mode=StartMode.RESET_STACK)

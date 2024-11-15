@@ -6,13 +6,9 @@ from typing import List, Dict
 import re
 
 
-
-
 async def get_session():
     async with async_session() as session:
         yield session
-
-
 
 
 async def add_anime(data: dict):
@@ -70,8 +66,6 @@ async def add_anime(data: dict):
             raise
 
 
-
-
 async def add_episodes_to_anime(anime: Anime, episode_data_list: list):
     async with async_session() as session:
         try:
@@ -90,8 +84,6 @@ async def add_episodes_to_anime(anime: Anime, episode_data_list: list):
             print(f"Ошибка при добавлении эпизодов: {exc}")
             await session.rollback()
             raise
-    
-
 
 
 async def check_anime_exists(anime_name: str):
@@ -100,8 +92,6 @@ async def check_anime_exists(anime_name: str):
             select(Anime).where(Anime.release_name == anime_name)
         )
         return result.scalars().first()
-
-
 
 
 async def add_episode(anime, episode_info):
@@ -130,8 +120,6 @@ async def add_episode(anime, episode_info):
 
         # Успешное добавление
         return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
-
-
 
 
 # Функция для получения эпизодов для аниме по названию
