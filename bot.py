@@ -18,7 +18,9 @@ async def main():
     dp = Dispatcher()
 
     # Регистрируем middleware
-    dp.message.middleware(PrivateChatMiddleware())
+    group_id = '-1002104882531'
+    
+    dp.message.middleware(PrivateChatMiddleware(bot, group_id))
 
     dp.include_routers(start.router, create_post.router, create_notification.router, menu.router, auto_reposter.router, get_episodes.router, add_episodes_to_db.router, add_title_to_db.router, start_dialog.router)
     

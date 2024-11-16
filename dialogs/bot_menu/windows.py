@@ -10,7 +10,7 @@ from typing import List
 
 
 # Максимальное количество кнопок на странице
-PAGE_SIZE = 12
+PAGE_SIZE = 7
 
 
 def titles_window():
