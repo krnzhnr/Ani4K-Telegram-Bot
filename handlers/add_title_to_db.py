@@ -129,14 +129,19 @@ def extract_anime_data(post):
     anime_data['release_name'] = lines[0]
 
     # 2. Извлечение описания
-    description_end_index = next((i for i, line in enumerate(lines) if re.search(r'\d+\s+эпизод', line, re.IGNORECASE)), -1)
+    description_end_index = next((i for i, line in enumerate(lines) if re.search(r'\d+\s*(эпизод|серия)', line, re.IGNORECASE)), -1)
     anime_data['description'] = ' '.join(lines[1:description_end_index]).strip()
     
-    # 3. Извлечение количества эпизодов (оставляем в виде строки)
+    # 3. Извлечение количества эпизодов или серий с использованием регулярного выражения
     if description_end_index != -1:
-        episodes_match = re.search(r'(\d+\s*эпизод)', lines[description_end_index], re.IGNORECASE)
+        # Используем регулярное выражение для поиска количества эпизодов или серий
+        episodes_match = re.search(r'\b(\d+)\s*(сери\w*|эпизод\w*)\b', lines[description_end_index], re.IGNORECASE)
         if episodes_match:
-            anime_data['episodes'] = episodes_match.group(1)  # Сохраняем как строку, например, "25 эпизодов"
+            anime_data['episodes'] = int(episodes_match.group(1))  # Сохраняем как целое число
+        else:
+            anime_data['episodes'] = 0  # Если не найдено, устанавливаем в 0
+
+    print(f"Извлечённое количество эпизодов: {anime_data['episodes']} (тип: {type(anime_data['episodes'])})")
 
     # Маппинг для перевода типа озвучки на английский
     dub_translation = {
@@ -166,7 +171,8 @@ def extract_anime_data(post):
         genres_line = hashtags[0]
         # Жанры: все слова после первого хэштега до следующего хэштега
         genres = re.findall(r'#(\w+)', genres_line)
-        anime_data['genres'] = ' '.join(genres)
+        # Преобразуем жанры в формат Title Case
+        anime_data['genres'] = ' '.join(genre.title() for genre in genres)
 
         # Остальные хэштеги (с сохранением символа #)
         all_hashtags = ' '.join(hashtags[1:])

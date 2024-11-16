@@ -23,9 +23,18 @@ async def add_anime(data: dict):
                 print(f"Аниме с названием '{data['release_name']}' уже существует.")
                 return existing_anime  # Возвращаем уже существующее аниме
 
-            # Извлекаем количество эпизодов
-            episodes_number = re.search(r'\d+', data['episodes'])
-            episodes = int(episodes_number.group()) if episodes_number else 0
+            # # Извлекаем количество эпизодов
+            # episodes_number = re.search(r'\d+', data['episodes'])
+            # episodes = int(episodes_number.group()) if episodes_number else 0
+            
+            # Проверка, если 'episodes' уже целое число
+            if isinstance(data['episodes'], int):
+                episodes = data['episodes']
+            else:
+                # Если это строка, извлекаем число
+                episodes_number = re.search(r'\d+', data['episodes'])
+                episodes = int(episodes_number.group()) if episodes_number else 0
+
 
             # Создаём новый объект Anime
             anime = Anime(
