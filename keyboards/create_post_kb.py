@@ -7,6 +7,7 @@ from aiogram.filters.callback_data import CallbackData
 class ChoiceDubCallbackActions(CallbackData, prefix='dub'):
     dub: str
 
+
 class CreatePostCallbackActions(CallbackData, prefix='createpost'):
     action: str
 

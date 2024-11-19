@@ -1,17 +1,23 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove
-from keyboards.menu_kb import create_post_start_kb, create_type_select_kb, start_kb
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.types import Message
+
+from keyboards.menu_kb import menu_kb
+from config_reader import config
 
 
 router = Router()
 
 
-@router.message(Command('start'))
+# ============ ОТКРЫТИЕ АДМИНСКОГО МЕНЮ СОЗДАНИЯ ПОСТОВ ============
+
+@router.message(Command('admin'))
 async def cmd_start(message: Message):
-    await message.answer(
-        'Приветствую! Нажми на кнопку внизу чтобы открыть меню.',
-        reply_markup=start_kb()
-        # reply_markup=ReplyKeyboardRemove()
-    )
+    if message.from_user.id == config.ADMIN_ID:  # Проверка соответствия ID пользователя и ID админа
+        await message.answer(
+            'Приветствую! Перед тобой меню.',
+            reply_markup=menu_kb()
+            # reply_markup=ReplyKeyboardRemove()  # Используется чтобы убрать клавиатуру с кнопками у пользователей
+        )
+    else:
+        pass
