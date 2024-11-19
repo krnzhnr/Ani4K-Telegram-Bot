@@ -1,15 +1,17 @@
-from aiogram.types import Message
-from aiogram import Router, F, Bot
-from database import check_anime_exists, add_episode
-
 import re
-
+from aiogram import Router, F, Bot
+from aiogram.types import Message
+from database import check_anime_exists, add_episode  # Локальные импорты для работы с базой данных
 
 router = Router()
 
 
 @router.message(F.video & F.caption)
 async def handle_video_message(message: Message, bot: Bot):
+    """
+    Обработка видеосообщений с подписью.
+    Извлекаем данные из подписи, проверяем наличие аниме в базе и добавляем эпизод.
+    """
     # Извлекаем ID видео и подпись
     video_id = message.video.file_id
     caption = message.caption
@@ -33,11 +35,16 @@ async def handle_video_message(message: Message, bot: Bot):
     if anime:
         result_message = await add_episode(anime, episode_info)  # получаем сообщение из add_episode
         await message.answer(result_message)  # отправляем его в чат
+        print(f"Эпизод добавлен для аниме: {anime_name}")
     else:
         await message.answer(f"Аниме '{anime_name}' не найдено в базе. Сначала добавьте его.")
+        print(f"Аниме '{anime_name}' не найдено в базе.")
 
 
 def extract_episode_info(caption: str):
+    """
+    Извлекает информацию о названии аниме, номере эпизода, типе озвучки и команде озвучки из подписи.
+    """
     # Шаблон для извлечения названия аниме до первого номера эпизода
     anime_name_pattern = r"^\[?\d*\]?\s*(.*?)\s*(?=\d+\s*эпизод)"  # Теперь \[?\d*\]? — необязательные скобки
     # Шаблон для номера эпизода
@@ -62,7 +69,3 @@ def extract_episode_info(caption: str):
         "dub": dub.group(1).strip().capitalize() if dub else None,
         "team": team.group(1).strip() if team else None
     }
-
-
-
-

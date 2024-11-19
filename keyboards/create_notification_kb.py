@@ -10,6 +10,8 @@ class CreateNotificationCallbackActions(CallbackData, prefix='createnotification
     action: str
 
 
+# ============ КЛАВИАТУРА ВЫБОРА КАНАЛА ============
+
 def create_noti_channel_selection_kb():
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -21,6 +23,8 @@ def create_noti_channel_selection_kb():
     return builder.as_markup()
 
 
+# ============ КЛАВИАТУРА ВЫБОРА ТИПА РЕЛИЗА ============
+
 def create_noti_release_type_selection():
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -31,6 +35,8 @@ def create_noti_release_type_selection():
     )
     return builder.as_markup()
 
+
+# ============ КЛАВИАТУРА "СКОЛЬКО СТАЛО ДОСТУПНО ЭПИЗОДОВ" ============
 
 def create_noti_howmuchepisedes_selection_kb():
     builder = InlineKeyboardBuilder()
@@ -47,6 +53,8 @@ def create_noti_howmuchepisedes_selection_kb():
     return builder.as_markup()
 
 
+# ============ КНОПКА "ТЕСТОВЫЙ", КОГДА ПОЛЬЗОВАТЕЛЬ ПЫТАЛСЯ ЗАПОСТИТЬ В ОСНОВНОЙ КАНАЛ ============
+
 def create_noti_channel_test():
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -54,6 +62,8 @@ def create_noti_channel_test():
     )
     return builder.as_markup()
 
+
+# ============ КЛАВИАТУРА ДЛЯ ПУБЛИКАЦИИ ИЛИ ОТМЕНЫ НА ЭТАПЕ ПРЕДПРОСМОТРА ГОТОВОГО УВЕДОМЛЕНИЯ ============
 
 def create_noti_finish_kb():
     from handlers.create_notification import notification

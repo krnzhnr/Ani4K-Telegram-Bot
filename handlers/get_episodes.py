@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 router = Router()
 
-# Обработчик команды /episodes
+# ============ НЕ ИСПОЛЬЗУЕТСЯ ============
+
+# Обработчик команды /episodes 
 @router.message(Command('episodes'))
 async def episodes_command(message: types.Message):
     # Извлекаем аргумент из текста сообщения
