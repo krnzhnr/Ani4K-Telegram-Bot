@@ -330,7 +330,7 @@ def post_assembly():
     """
     dub_type = 'Дубляж,' if post['dub'] == 'dubbed' else 'Закадровая озвучка,'
     ready_post = (f'<b><u>{post["release_name"]}</u></b>\n\n<i><blockquote expandable>{post["description"]}</blockquote></i>\n\n'
-                  f'{post["episodes"]}\n\n{dub_type} {post["dub_team"]}\n\n{post["genres_and_topics"]}\n\n{post["hashtags"]}')
+                f'{post["episodes"]}\n\n{dub_type} {post["dub_team"]}\n\n{post["genres_and_topics"]}\n\n{post["hashtags"]}')
     return ready_post
 
 
@@ -344,7 +344,8 @@ async def post_publish(
 ):
     """
     Обработка публикации поста.
-    Сохраняем данные в базе и отправляем пост в канал.
+    Сохраняем данные в базе, отправляем пост в канал,
+    создаем топик, закрываем его, и отправляем анонс в топик.
     """
     try:
         anime_data = {
@@ -359,19 +360,24 @@ async def post_publish(
         }
         print(f'Data in create_post: {anime_data}')
 
-        # Сохраняем anime_data в базу данных
+        # Сохраняем данные в базу
         if callback.message.chat.id == ADMIN_ID and post['channel_id'] == MAIN_CHANNEL_ID:
-            await add_anime(anime_data)  # Вызов функции добавления в базу данных
+            await add_anime(anime_data)
         else:
             print(f'Пропущена запись в базу, запостил {callback.message.chat.full_name}')
             pass
 
-        # Отправляем фото и пост в канал и присваиваем объект сообщения переменной
+        # Подготовим текст поста один раз
+        post_caption = post_assembly()
+
+        # Отправляем фото и пост в канал
         sent_message = await bot.send_photo(
             chat_id=post['channel_id'],
             photo=post['poster_id'],
-            caption=post_assembly()
+            caption=post_caption
         )
+
+        # Удаляем сообщения из чата
         await callback.message.answer(
             text='Пост опубликован, перед тобой меню.',
             reply_markup=menu_kb()
@@ -380,17 +386,38 @@ async def post_publish(
             callback.message.chat.id,
             [callback.message.message_id, callback.message.message_id - 1]
         )
-        if post['channel_id'] == '-1002303815016':
-            pass
-        else:
-            # Используем извлеченный ID сообщения из sent_message и пересылаем его в группу
+
+        if post['channel_id'] != '-1002303815016':
+            # Пересылаем сообщение в основной чат
             await bot.forward_message(
                 chat_id=CHAT_ID,
                 from_chat_id=post['channel_id'],
                 message_id=sent_message.message_id
             )
+
+            # Создаём топик
+            topic = await bot.create_forum_topic(
+                chat_id=CHAT_ID,
+                name=post['release_name'].split('/')[0].strip()
+            )
+
+            # Закрываем топик для сообщений пользователей
+            await bot.close_forum_topic(
+                chat_id=CHAT_ID,
+                message_thread_id=topic.message_thread_id
+            )
+
+            # Отправляем фото в топик
+            await bot.send_photo(
+                chat_id=CHAT_ID,
+                photo=post['poster_id'],
+                caption=post_caption,  # Используем уже подготовленный текст
+                message_thread_id=topic.message_thread_id  # ID топика
+            )
+
         post.clear()
         await callback.answer()
+
     except Exception as exc:
         print(exc)
         await callback.message.answer(
