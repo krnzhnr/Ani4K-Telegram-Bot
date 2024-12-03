@@ -4,6 +4,7 @@ from aiogram.types import Message, PhotoSize
 from aiogram.filters import Command
 from database import check_anime_exists, add_episode, add_anime  # Локальные импорты для работы с базой данных
 from models.models import Anime  # Локальный импорт модели Anime
+from config_reader import config
 from aiogram.fsm.context import FSMContext  # Локальный импорт для работы с состояниями FSM
 from aiogram.fsm.state import StatesGroup, State  # Локальные импорты для состояний FSM
 
@@ -83,34 +84,35 @@ async def getting_announcement(message: Message):
     Обработка сообщений с изображением и подписью.
     Извлекаем данные и добавляем аниме в базу.
     """
-    if message.photo:
-        poster_img = message.photo[-1]  # Получаем самое большое изображение
-    else:
-        await message.answer('Не удалось найти изображение в сообщении.')
-        return
-
-    post = {
-        'poster_id': poster_img.file_id,
-        'message': message.caption
-    }
-
-    anime_data = extract_anime_data(post)  # Извлекаем данные о аниме
-    print(anime_data)
-
-    try:
-        result = await add_anime(anime_data)  # Добавляем аниме в базу данных
-
-        if isinstance(result, Anime):
-            # Если аниме существует, возвращаем сообщение
-            await message.answer(
-                f"❗️ Аниме с названием '{result.release_name}' уже существует."
-            )
+    if message.from_user.id == config.ADMIN_ID:  # Проверка соответствия ID пользователя и ID админа
+        if message.photo:
+            poster_img = message.photo[-1]  # Получаем самое большое изображение
         else:
-            # Если аниме добавлено, возвращаем сообщение об успехе
-            await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
-    except Exception as exc:
-        print(exc)
-        await message.answer(f'При добавлении произошла ошибка:\n\n{exc}')
+            await message.answer('Не удалось найти изображение в сообщении.')
+            return
+
+        post = {
+            'poster_id': poster_img.file_id,
+            'message': message.caption
+        }
+
+        anime_data = extract_anime_data(post)  # Извлекаем данные о аниме
+        print(anime_data)
+
+        try:
+            result = await add_anime(anime_data)  # Добавляем аниме в базу данных
+
+            if isinstance(result, Anime):
+                # Если аниме существует, возвращаем сообщение
+                await message.answer(
+                    f"❗️ Аниме с названием '{result.release_name}' уже существует."
+                )
+            else:
+                # Если аниме добавлено, возвращаем сообщение об успехе
+                await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
+        except Exception as exc:
+            print(exc)
+            await message.answer(f'При добавлении произошла ошибка:\n\n{exc}')
 
 
 def extract_anime_data(post):

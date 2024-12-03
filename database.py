@@ -116,7 +116,7 @@ async def add_episode(anime, episode_info):
 
         if existing_episode:
             # Если эпизод уже существует
-            return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."
+            return f"❗️Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."
 
         # Если эпизод не найден, добавляем новый
         new_episode = Episode(
@@ -128,7 +128,7 @@ async def add_episode(anime, episode_info):
         await session.commit()
 
         # Успешное добавление
-        return f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
+        return f"✅Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
 
 
 # Функция для получения эпизодов для аниме по названию
