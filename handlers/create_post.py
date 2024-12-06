@@ -18,6 +18,7 @@ post = {}
 
 ADMIN_ID = 491203291
 CHAT_ID = '-1002104882531'  # ID чата
+SOURCE_CHAT_ID = '-1002189764703'
 MAIN_CHANNEL_ID = '-1001995806263'
 TEST_CHANNEL_ID = '-1002303815016'
 
@@ -395,7 +396,7 @@ async def post_publish(
                 message_id=sent_message.message_id
             )
 
-            # Создаём топик
+            # Создаём топик в Ani4K HUB
             topic = await bot.create_forum_topic(
                 chat_id=CHAT_ID,
                 name=post['release_name'].split('/')[0].strip()
@@ -413,6 +414,20 @@ async def post_publish(
                 photo=post['poster_id'],
                 caption=post_caption,  # Используем уже подготовленный текст
                 message_thread_id=topic.message_thread_id  # ID топика
+            )
+            
+            # Создаём топик в Ani4K Source
+            source_topic = await bot.create_forum_topic(
+                chat_id=SOURCE_CHAT_ID,
+                name=post['release_name'].split('/')[0].strip()
+            )
+            
+            # Отправляем фото в топик
+            await bot.send_photo(
+                chat_id=SOURCE_CHAT_ID,
+                photo=post['poster_id'],
+                caption=post_caption,  # Используем уже подготовленный текст
+                message_thread_id=source_topic.message_thread_id  # ID топика
             )
 
         post.clear()
