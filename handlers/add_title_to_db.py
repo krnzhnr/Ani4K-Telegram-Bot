@@ -7,6 +7,7 @@ from models.models import Anime  # Локальный импорт модели 
 from config_reader import config
 from aiogram.fsm.context import FSMContext  # Локальный импорт для работы с состояниями FSM
 from aiogram.fsm.state import StatesGroup, State  # Локальные импорты для состояний FSM
+from utils.terminal import success, error, warning, info, debug
 
 router = Router()
 
@@ -89,6 +90,7 @@ async def getting_announcement(message: Message):
             poster_img = message.photo[-1]  # Получаем самое большое изображение
         else:
             await message.answer('Не удалось найти изображение в сообщении.')
+            print(warning("Не удалось найти изображение в сообщении."))
             return
 
         post = {
@@ -97,7 +99,7 @@ async def getting_announcement(message: Message):
         }
 
         anime_data = extract_anime_data(post)  # Извлекаем данные о аниме
-        print(anime_data)
+        print(debug(anime_data))
 
         try:
             result = await add_anime(anime_data)  # Добавляем аниме в базу данных
@@ -107,11 +109,13 @@ async def getting_announcement(message: Message):
                 await message.answer(
                     f"❗️ Аниме с названием '{result.release_name}' уже существует."
                 )
+                print(warning(f"Аниме с названием '{result.release_name}' уже существует."))
             else:
                 # Если аниме добавлено, возвращаем сообщение об успехе
                 await message.answer(f"✅ Аниме '{anime_data['release_name']}' успешно добавлено.")
+                print(success(f"Аниме '{anime_data['release_name']}' успешно добавлено."))
         except Exception as exc:
-            print(exc)
+            print(error(exc))
             await message.answer(f'При добавлении произошла ошибка:\n\n{exc}')
 
 

@@ -3,6 +3,8 @@ import logging
 
 from aiogram import Bot, Router, F, types
 from aiogram.types import Message
+from utils.terminal import success, error, warning, info, debug
+
 
 # Настройка логирования
 # logging.basicConfig(level=logging.INFO)
@@ -19,9 +21,9 @@ async def sleep():
     """
     Функция, выполняющая паузу на 60 секунд.
     """
-    print('Сон 60 секунд...')
+    print(info('Сон 60 секунд...'))
     await asyncio.sleep(60)
-    print("Сон выполнен")
+    print(info("Сон выполнен"))
     return True
 
 
@@ -40,12 +42,12 @@ async def forward_message(
     """
     # Проверяем, из нужного ли канала пришло сообщение
     if channel_post.chat.id == CHANNEL_ID:
-        print(f"Обнаружен пост: {channel_post.text or channel_post.caption}")
+        print(info(f"Обнаружен пост: {channel_post.text or channel_post.caption}"))
 
         # Выполняем задержку перед пересылкой
         if await sleep() is True:
-            print(f"Пересылаю пост: {channel_post.text or channel_post.caption}")
+            print(info(f"Пересылаю пост: {channel_post.text or channel_post.caption}"))
             await bot.forward_message(CHAT_ID, CHANNEL_ID, channel_post.message_id)
     else:
-        print('Обнаружен пост в тестовом канале. Пропускаю...')
+        print(info('Обнаружен пост в тестовом канале. Пропускаю...'))
         pass

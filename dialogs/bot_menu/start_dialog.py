@@ -6,6 +6,8 @@ from aiogram_dialog import DialogManager, StartMode
 
 # Локальные импорты
 from dialogs.bot_menu.states import BotMenu  # Состояния диалога
+from utils.terminal import success, error, warning, info, debug
+
 
 # Инициализация роутера и ID чата
 router = Router()
@@ -41,7 +43,7 @@ async def get_menu(message: Message, dialog_manager: DialogManager, bot: Bot):
     username = message.from_user.username
 
     # Логирование: выводим информацию о пользователе
-    print(f"Получена команда /start от пользователя {full_name} (ID: {user_id}, Username: {username})")
+    print(info(f"Получена команда /start от пользователя {full_name} (ID: {user_id}, Username: {username})"))
 
     # Закомментированная проверка наличия пользователя в группе
     # if await is_user_in_group(user_id, bot):
@@ -54,5 +56,6 @@ async def get_menu(message: Message, dialog_manager: DialogManager, bot: Bot):
     #     )
 
     # Прямой запуск диалога без проверки
-    print(f'{full_name} (ID: {user_id}, Username: {username}) открыл меню.')
+    print(info(f'{full_name} (ID: {user_id}, Username: {username}) открыл меню.'))
     await dialog_manager.start(BotMenu.TITLES, mode=StartMode.RESET_STACK)
+    print(info(f"Диалог с {full_name} (ID: {user_id}) был запущен с начальным состоянием меню."))

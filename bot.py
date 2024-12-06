@@ -9,6 +9,7 @@ from aiogram_dialog import setup_dialogs
 from dialogs import setup_dialogs_fun
 from dialogs.bot_menu import start_dialog
 from middlewares import PrivateChatMiddleware
+from utils.terminal import success, error, warning, info, debug
 
 
 async def main():
@@ -34,7 +35,7 @@ async def main():
     setup_dialogs(dp)
 
     await bot.delete_webhook(drop_pending_updates=True)
-    print('Бот запущен!')
+    print(info('Бот запущен!'))
     await dp.start_polling(bot)
 
 

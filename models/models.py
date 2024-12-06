@@ -21,7 +21,7 @@ belarus_timezone = timezone(timedelta(hours=3))
 # Инициализация базы данных SQLite
 engine = create_async_engine(
     config.database_url, 
-    echo=True,
+    echo=False,
     connect_args={"check_same_thread": False}  # Эта опция нужна для SQLite
 )
 

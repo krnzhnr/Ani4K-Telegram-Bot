@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import Anime, Genre, Episode, async_session
+from utils.terminal import success, error, warning, info, debug
 from sqlalchemy.orm import selectinload
 from typing import List, Dict
 import re
@@ -20,7 +21,7 @@ async def add_anime(data: dict):
             )
             existing_anime = result.scalars().first()
             if existing_anime:
-                print(f"Аниме с названием '{data['release_name']}' уже существует.")
+                # print(warning(f"Аниме с названием '{data['release_name']}' уже существует."))
                 return existing_anime  # Возвращаем уже существующее аниме
 
             # # Извлекаем количество эпизодов
@@ -65,12 +66,12 @@ async def add_anime(data: dict):
             # Добавление аниме в базу данных
             session.add(anime)
             await session.commit()
-            print(f"Аниме '{anime.release_name}' успешно добавлено!")
+            # print(success(f"Аниме '{anime.release_name}' успешно добавлено!"))
             # return anime  # Возвращаем добавленное аниме
             return True
 
         except Exception as exc:
-            print(f"Ошибка: {exc}")
+            print(error(exc))
             await session.rollback()  # Откат изменений при ошибке
             raise
 
@@ -87,10 +88,10 @@ async def add_episodes_to_anime(anime: Anime, episode_data_list: list):
                 session.add(episode)
 
             await session.commit()
-            print(f"{len(episode_data_list)} эпизодов успешно добавлено к аниме '{anime.release_name}'!")
+            print(success(f"{len(episode_data_list)} эпизодов успешно добавлено к аниме '{anime.release_name}'!"))
 
         except Exception as exc:
-            print(f"Ошибка при добавлении эпизодов: {exc}")
+            print(error(exc))
             await session.rollback()
             raise
 
@@ -116,6 +117,7 @@ async def add_episode(anime, episode_info):
 
         if existing_episode:
             # Если эпизод уже существует
+            print(warning(f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."))
             return f"❗️Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."
 
         # Если эпизод не найден, добавляем новый
@@ -128,6 +130,7 @@ async def add_episode(anime, episode_info):
         await session.commit()
 
         # Успешное добавление
+        print(success(f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."))
         return f"✅Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
 
 

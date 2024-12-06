@@ -19,6 +19,8 @@ from keyboards.create_notification_kb import (
 from keyboards.menu_kb import creation_cancel_kb, menu_kb
 from catbox import CatboxUploader
 from database import check_anime_exists, add_episode
+from utils.terminal import success, error, warning, info, debug
+
 
 # Инициализация роутера и других объектов
 router = Router()
@@ -66,7 +68,7 @@ async def main_channel_selected(callback: types.CallbackQuery, callback_data: Cr
     """
     if callback.message.chat.id == ADMIN_ID:
         notification.update({'channel_id': '-1001995806263'})
-        print(f"{callback.message.chat.full_name} выбрал канал ОСНОВНОЙ, ID = {notification['channel_id']}")
+        print(info(f"{callback.message.chat.full_name} выбрал канал ОСНОВНОЙ, ID = {notification['channel_id']}"))
         await callback.message.edit_text(
             f'Выбран канал: <strong>Основной</strong>.\n\nВыбери тип релиза.',
             reply_markup=create_noti_release_type_selection()
@@ -78,7 +80,7 @@ async def main_channel_selected(callback: types.CallbackQuery, callback_data: Cr
             f'Тебе, {callback.message.chat.full_name}, там делать нечего, так что давай ты выберешь <strong>тестовый</strong> и мы не будем с тобой ругаться.',
             reply_markup=create_noti_channel_test()
         )
-        print(f"{callback.message.chat.full_name} пытался запостить в основу.")
+        print(info(f"{callback.message.chat.full_name} пытался запостить в основу."))
     await callback.answer()
 
 
@@ -90,7 +92,7 @@ async def test_channel_selected(callback: types.CallbackQuery, callback_data: Cr
     Выбор тестового канала для публикации.
     """
     notification.update({'channel_id': '-1002303815016'})
-    print(f"{callback.message.chat.full_name} выбрал канал ТЕСТОВЫЙ, ID = {notification['channel_id']}")
+    print(info(f"{callback.message.chat.full_name} выбрал канал ТЕСТОВЫЙ, ID = {notification['channel_id']}"))
     await callback.message.edit_text(
         f'Выбран канал: <strong>Тестовый</strong>.\n\nВыбери тип релиза.',
         reply_markup=create_noti_release_type_selection()
@@ -107,7 +109,7 @@ async def create_noti_film_selected(callback: types.CallbackQuery, callback_data
     Выбор типа релиза: Фильм.
     """
     notification.update({'release_type': 'film'})
-    print("Выбранный тип релиза: Фильм")
+    print(info("Выбранный тип релиза: Фильм"))
     await callback.message.edit_text(
         'Выбранный тип релиза: <strong>Фильм</strong>\n\nПришли название фильма.',
         reply_markup=creation_cancel_kb()
@@ -124,7 +126,7 @@ async def create_noti_series_selected(callback: types.CallbackQuery, callback_da
     Выбор типа релиза: Сериал.
     """
     notification.update({'release_type': 'series'})
-    print("Выбранный тип релиза: Сериал")
+    print(info("Выбранный тип релиза: Сериал"))
     await callback.message.edit_text(
         'Выбранный тип релиза: <strong>Сериал</strong>\n\nВыбери, сколько эпизодов стало доступно.',
         reply_markup=create_noti_howmuchepisedes_selection_kb()
@@ -140,7 +142,7 @@ async def create_noti_one_episode_selected(callback: types.CallbackQuery, callba
     Выбор одного эпизода.
     """
     notification.update({'how_many_episodes': 'one'})
-    print("Количество эпизодов: Один")
+    print(info("Количество эпизодов: Один"))
     await callback.message.edit_text(
         f'Стало доступно эпизодов: <strong>Один</strong>\n\nПришли номер этого эпизода.',
         reply_markup=creation_cancel_kb()
@@ -157,7 +159,7 @@ async def create_noti_many_episodes_selected(callback: types.CallbackQuery, call
     Обработка выбора нескольких эпизодов.
     """
     notification.update({'how_many_episodes': 'many'})
-    print("Количество эпизодов: Несколько")
+    print(info("Количество эпизодов: Несколько"))
     await callback.message.edit_text(
         f'Стало доступно эпизодов: <strong>Несколько</strong>\n\nПришли номер первого и последнего эпизода через дефиз.\n\nНапример: 1-5',
         reply_markup=creation_cancel_kb()
@@ -175,11 +177,11 @@ async def get_episodes(message: Message, state: FSMContext, bot: Bot):
     """
     if notification['how_many_episodes'] == 'one':
         notification.update({'episode': message.text})
-        print(f'Номер эпизода: {message.text}')
+        print(info(f'Номер эпизода: {message.text}'))
         await message.answer('Номер эпизода добавлен, теперь пришли название сериала.', reply_markup=creation_cancel_kb())
     else:
         notification.update({'episodes': message.text})
-        print(f'Номера эпизодов: {message.text}')
+        print(info(f'Номера эпизодов: {message.text}'))
         await message.answer('Номера эпизодов добавлены, теперь пришли название сериала.', reply_markup=creation_cancel_kb())
 
     await bot.delete_messages(message.chat.id, [message.message_id, message.message_id - 1])
@@ -194,7 +196,7 @@ async def create_noti_add_name(message: Message, state: FSMContext, bot: Bot):
     Обработка названия релиза.
     """
     notification.update({'release_name': message.text})
-    print(f'Название сериала/фильма: {message.text}')
+    print(info(f'Название сериала/фильма: {message.text}'))
     await message.answer('Название добавлено, теперь пришли постер.', reply_markup=creation_cancel_kb())
     await bot.delete_messages(message.chat.id, [message.message_id, message.message_id - 1])
     await state.set_state(NotificationCreation.add_poster)
@@ -213,12 +215,20 @@ async def create_noti_add_poster(message: Message, state: FSMContext, poster_img
     await bot.send_chat_action(chat_id=message.chat.id, action='upload_photo')
 
     # Скачивание и загрузка постера
+    print(info("Получение и скачивание постера..."))
+    
     img = await bot.get_file(poster_img.file_id)
     await bot.download_file(img.file_path, f'img/{poster_img.file_id}.jpg')
+    
+    print(info("Постер скачан."))
 
     # Загрузка на сервер и получение ссылки
+    print(info("Загрузка постера на CatBox.moe..."))
+    
     poster_link = uploader.upload_file(f'img/{poster_img.file_id}.jpg')
     notification.update({'link': poster_link})
+    
+    print(info(f"Постер загружен. Ссылка на постер: {notification['link']}"))
 
     await uploading_message.edit_text('Постер добавлен.\n\nИтоговый вид уведомления:')
     await message.answer(notification_text_assembly(), reply_markup=create_noti_finish_kb())
@@ -252,16 +262,21 @@ async def post_publish(callback: types.CallbackQuery, callback_data: CreateNotif
             chat_id=notification['channel_id'],
             text=notification_text_assembly()
         )
+        
+        print(info("Уведомление опубликовано."))
+        
         await callback.message.answer('Уведомление опубликовано, перед тобой меню.', reply_markup=menu_kb())
         await bot.delete_messages(callback.message.chat.id, [callback.message.message_id, callback.message.message_id - 1])
 
         if notification['channel_id'] != '-1002303815016':
             await bot.forward_message(CHAT_ID, notification['channel_id'], sent_message.message_id)
+            print(info("Уведомление переслано."))
 
         notification.clear()
         await callback.answer()
+        
     except Exception as exc:
-        print(f'Ошибка при публикации: {exc}')
+        print(error(exc))
         await callback.message.edit_text(f'Что-то пошло не так, причина:\n\n{exc}')
         await callback.answer()
 
@@ -275,6 +290,7 @@ async def post_cancel(callback: types.CallbackQuery, callback_data: CreateNotifi
     """
     await state.clear()
     notification.clear()
+    print(info("Уведомление удалено."))
     await callback.message.answer('Уведомление удалено, перед тобой меню.', reply_markup=menu_kb())
     await bot.delete_messages(callback.message.chat.id, [callback.message.message_id, callback.message.message_id - 1])
     await callback.answer()
