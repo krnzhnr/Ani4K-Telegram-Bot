@@ -40,6 +40,11 @@ class PrivateChatMiddleware(BaseMiddleware):
         # Если сообщение из супергруппы
         if isinstance(event, Message) and event.chat.type == 'supergroup':
             print(info("[Middleware] Сообщение из супергруппы. Передаю дальше..."))
+            # Проверяем, совпадает ли chat_id с ожидаемым
+            if event.chat.id != int(self.group_id):
+                print(warning(f"[Middleware] Сообщение из супергруппы '{event.chat.title or 'Без названия'}' ({event.chat.id}), но ожидается 'Ani4K HUB'. Пропускаю..."))
+                return  # Пропускаем сообщение, если оно не из нужной супергруппы
+            
             # Проверка, является ли это сообщение из топика
             if not event.is_topic_message:
                 print(warning("[Middleware] Сообщение не из топика. Пропускаю..."))

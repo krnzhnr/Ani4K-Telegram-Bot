@@ -35,9 +35,16 @@ async def main():
     setup_dialogs(dp)
 
     await bot.delete_webhook(drop_pending_updates=True)
-    print(info('Бот запущен!'))
+    print(info('Бот запущен. Нажмите Ctrl+C для завершения работы.'))
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[INFO] Работа бота остановлена пользователем (KeyboardInterrupt).")
+    except Exception as e:
+        print(f"[ERROR] Произошло необработанное исключение: {e}")
+    finally:
+        print("[INFO] Завершение работы программы.")
