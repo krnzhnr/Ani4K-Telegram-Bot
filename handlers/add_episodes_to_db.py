@@ -1,7 +1,7 @@
 import re
 from aiogram import Router, F, Bot
 from aiogram.types import Message
-from database import check_anime_exists, add_episode  # Локальные импорты для работы с базой данных
+from database import check_anime_exists, add_episode, notify_subscribed_users  # Локальные импорты для работы с базой данных
 from config_reader import config
 from utils.terminal import success, error, warning, info, debug
 
@@ -40,9 +40,10 @@ async def handle_video_message(message: Message, bot: Bot):
         # Проверка наличия аниме в базе
         anime = await check_anime_exists(anime_name)
         if anime:
-            result_message = await add_episode(anime, episode_info)  # получаем сообщение из add_episode
-            await bot.send_message(config.ADMIN_ID, result_message)  # отправляем сообщение в личку админу
-            # print(success(f"Эпизод добавлен для аниме: {anime_name}"))
+            result_message, anime_name = await add_episode(anime, episode_info)  # Получаем сообщение и название аниме
+            await bot.send_message(config.ADMIN_ID, result_message)  # Отправляем сообщение админу
+            # Уведомляем подписанных пользователей
+            await notify_subscribed_users(anime.id, episode_info['episode_number'], anime_name, bot)
         else:
             await bot.send_message(config.ADMIN_ID, f"❗️ Аниме '{anime_name}' не найдено в базе. Сначала добавьте его.")
             print(warning(f"Аниме '{anime_name}' не найдено в базе."))

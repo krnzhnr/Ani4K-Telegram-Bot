@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import Anime, Genre, Episode, User, Subscription, async_session
 from utils.terminal import success, error, warning, info, debug
 from sqlalchemy.orm import selectinload
+from aiogram import Bot
 from typing import List, Dict
 import re
 from datetime import datetime, timezone, timedelta
@@ -121,7 +122,7 @@ async def add_episode(anime, episode_info):
         if existing_episode:
             # Если эпизод уже существует
             print(warning(f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."))
-            return f"❗️Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе."
+            return f"❗️Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' уже существует в базе.", anime.release_name
 
         # Если эпизод не найден, добавляем новый
         new_episode = Episode(
@@ -134,7 +135,7 @@ async def add_episode(anime, episode_info):
 
         # Успешное добавление
         print(success(f"Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."))
-        return f"✅Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен."
+        return f"✅Эпизод {episode_info['episode_number']} для аниме '{anime.release_name}' успешно добавлен.", anime.release_name
 
 
 # Функция для получения эпизодов для аниме по названию
@@ -277,3 +278,35 @@ async def remove_subscription_from_db(user_id, anime_id):
 
                 return True
             return False  # Если не было удалено ни одной строки, возвращаем False
+
+
+async def notify_subscribed_users(anime_id: int, episode_number: int, anime_name: str, bot: Bot):
+    """
+    Уведомление пользователей, подписанных на указанное аниме, о новом эпизоде.
+    """
+    async with async_session() as session:
+        # Получаем список пользователей, подписанных на это аниме
+        result = await session.execute(
+            select(User).join(Subscription).filter(Subscription.anime_id == anime_id)
+        )
+        users = result.scalars().all()
+
+        # Если подписчиков нет
+        if not users:
+            print(warning(f"Нет подписчиков на аниме '{anime_name}'"))
+            return
+
+        anime_name = anime_name.split('/')[0].strip()
+
+        # Отправляем уведомления каждому подписчику
+        for user in users:
+            try:
+                # Отправляем сообщение каждому пользователю
+                await bot.send_message(
+                    user.id,
+                    f'🎬 Новый эпизод аниме <b><i>{anime_name}</i></b>! Эпизод <b>{episode_number}</b> теперь доступен.'
+                )
+                print(success(f"Уведомление отправлено пользователю {user.full_name} ({user.id}) о новом эпизоде аниме '{anime_name}'"))
+            except Exception as e:
+                # Обрабатываем ошибки, если не удалось отправить сообщение пользователю
+                print(error(f"Не удалось отправить уведомление пользователю {user.id}: {e}"))

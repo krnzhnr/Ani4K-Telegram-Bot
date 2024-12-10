@@ -73,7 +73,7 @@ async def on_title_subscribed(c: CallbackQuery, widget: Any, manager: DialogMana
             # Если пользователь подписан, то отписываем
             success = await remove_subscription_from_db(user_id, anime_id)
             if success:
-                subscribe_text = "Подписаться"  # Меняем текст кнопки на "Подписаться"
+                subscribe_text = "🔔 Подписаться"  # Меняем текст кнопки на "Подписаться"
                 await c.answer(f"Вы отписались от обновлений (ID: {anime_id}).")
             else:
                 await c.answer(f"Ошибка при отписке от обновлений (ID: {anime_id}).")
@@ -81,7 +81,7 @@ async def on_title_subscribed(c: CallbackQuery, widget: Any, manager: DialogMana
             # Если пользователь не подписан, то подписываем
             success = await add_subscription_to_db(user_id, anime_id)
             if success:
-                subscribe_text = "Отписаться"  # Меняем текст кнопки на "Отписаться"
+                subscribe_text = "🔕 Отписаться"  # Меняем текст кнопки на "Отписаться"
                 await c.answer(f"Вы подписались на обновления (ID: {anime_id}).")
             else:
                 await c.answer(f"Ошибка при подписке на обновления (ID: {anime_id}).")

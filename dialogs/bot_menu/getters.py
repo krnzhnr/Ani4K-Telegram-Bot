@@ -129,7 +129,7 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
                 .filter(Subscription.user_id == user_id, Subscription.anime_id == anime_id)
             )
             is_subscribed = subscription_result.scalar() is not None
-            subscribe_text = "Отписаться" if is_subscribed else "Подписаться"
+            subscribe_text = "🔕 Отписаться" if is_subscribed else "🔔 Подписаться"
             print(info(f"Статус подписки: {'Подписан' if is_subscribed else 'Не подписан'}"))
 
             # Извлекаем название, постер, описание, тип озвучки и команду озвучки
