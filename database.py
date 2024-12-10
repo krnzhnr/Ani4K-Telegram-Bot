@@ -1,10 +1,13 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import Anime, Genre, Episode, async_session
+from models.models import Anime, Genre, Episode, User, Subscription, async_session
 from utils.terminal import success, error, warning, info, debug
 from sqlalchemy.orm import selectinload
 from typing import List, Dict
 import re
+from datetime import datetime, timezone, timedelta
+
+belarus_timezone = timezone(timedelta(hours=3))
 
 
 async def get_session():
@@ -170,3 +173,107 @@ async def get_episodes_for_anime(release_name: str):
         print(f"Ошибка при извлечении серий: {exc}")
         return f"Произошла ошибка: {exc}"
 
+
+async def upsert_user(user_id: int, first_name: str, last_name: str, full_name: str, username: str, interaction_date: datetime):
+    """
+    Добавляет нового пользователя или обновляет дату последнего взаимодействия
+    для существующего пользователя.
+
+    :param user_id: ID пользователя
+    :param first_name: Имя пользователя
+    :param second_name: Фамилия пользователя
+    :param full_name: Полное имя пользователя
+    :param username: Username пользователя
+    :param interaction_date: Дата взаимодействия
+    """
+    async with async_session() as session:
+        async with session.begin():
+            # Ищем пользователя в базе данных
+            user = await session.get(User, user_id)
+            
+            if user:  # Если пользователь уже существует
+                user.last_interaction_date = interaction_date  # Обновляем дату последнего взаимодействия
+                print(info(f"Обновлена дата последнего взаимодействия для пользователя {full_name} (ID: {user_id})."))
+            else:  # Если пользователь новый
+                user = User(
+                    id=user_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    full_name=full_name,
+                    username=username,
+                    first_interaction_date=interaction_date,  # Устанавливаем дату первого взаимодействия
+                    last_interaction_date=interaction_date   # Устанавливаем дату последнего взаимодействия
+                )
+                session.add(user)
+                print(success(f"Добавлен новый пользователь: {full_name} (ID: {user_id})."))
+
+        await session.commit()
+
+
+async def add_subscription_to_db(user_id: int, anime_id: int):
+    """
+    Функция для добавления подписки в базу данных.
+    Проверяет, есть ли уже подписка на это аниме у пользователя.
+    Если подписки нет, создает новую.
+    """
+    async with async_session() as session:
+        async with session.begin():
+            # Проверка, есть ли у пользователя подписка на это аниме
+            result = await session.execute(select(Subscription).filter_by(user_id=user_id, anime_id=anime_id))
+            existing_subscription = result.scalars().first()  # Получаем первый результат
+
+            if existing_subscription:
+                return False  # Если подписка уже есть, возвращаем False
+
+            # Создаем новую подписку
+            new_subscription = Subscription(
+                user_id=user_id,
+                anime_id=anime_id,
+                subscribed_at=datetime.now(belarus_timezone),  # Устанавливаем время подписки
+            )
+            
+            session.add(new_subscription)
+            
+            # Обновляем время последнего обновления подписки для пользователя в таблице User
+            user_stmt = select(User).filter_by(id=user_id)
+            user_result = await session.execute(user_stmt)
+            user = user_result.scalars().first()
+
+            if user:
+                user.subscriptions_last_updated = datetime.now(belarus_timezone)  # Обновляем время
+
+            await session.commit()  # Сохраняем новую подписку в таблице Subscription
+
+            return True  # Возвращаем True, если подписка была успешно добавлена
+
+
+async def check_subscription_in_db(user_id, anime_id):
+    """Проверяет, есть ли подписка в базе данных."""
+    async with async_session() as session:
+        async with session.begin():
+            stmt = select(Subscription).filter_by(user_id=user_id, anime_id=anime_id)
+            result = await session.execute(stmt)
+            return result.scalars().first() is not None
+
+
+async def remove_subscription_from_db(user_id, anime_id):
+    """Удаляет подписку из базы данных и возвращает True, если подписка была удалена."""
+    async with async_session() as session:
+        async with session.begin():
+            # Удаляем подписку из таблицы Subscription
+            stmt = delete(Subscription).filter_by(user_id=user_id, anime_id=anime_id)
+            result = await session.execute(stmt)
+
+            # Проверяем, были ли затронуты строки (то есть подписка была удалена)
+            if result.rowcount > 0:
+                # Если подписка была удалена, обновляем поле subscriptions_last_updated в таблице User
+                user_stmt = select(User).filter_by(id=user_id)
+                user_result = await session.execute(user_stmt)
+                user = user_result.scalars().first()
+
+                if user:
+                    user.subscriptions_last_updated = datetime.now(belarus_timezone)  # Обновляем время
+                    await session.commit()  # Сохраняем изменения в таблице User
+
+                return True
+            return False  # Если не было удалено ни одной строки, возвращаем False

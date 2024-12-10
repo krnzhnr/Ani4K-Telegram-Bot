@@ -7,7 +7,7 @@ from aiogram.enums import ContentType
 from typing import Dict, List
 
 # Импорт моделей и сессии для работы с базой данных
-from models.models import Anime, Episode, async_session
+from models.models import Anime, Episode, Subscription, async_session
 from utils.terminal import success, error, warning, info, debug
 
 
@@ -100,10 +100,11 @@ async def get_anime_data(dialog_manager: DialogManager, **kwargs) -> Dict:
         raise e
 
 
-# Функция для получения данных об эпизодах аниме
+# Функция для получения данных об эпизодах аниме и статусе подписки
 async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
     anime_id = dialog_manager.current_context().dialog_data.get('anime_id')
-    
+    user_id = dialog_manager.event.from_user.id  # ID пользователя Telegram
+
     if not anime_id:
         print(warning("Не найден anime_id в контексте диалога. Возвращаем пустые данные."))
         return {
@@ -112,13 +113,25 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
             'anime_name': '', 
             'anime_description': '', 
             'voice_type': '', 
-            'voice_team': ''
+            'voice_team': '',
+            'is_subscribed': False,
+            'subscribe_text': 'Подписаться'  # По умолчанию кнопка для подписки
         }
 
     print(info(f"Получение данных для аниме с ID: {anime_id}"))
 
     async with async_session() as session:
         try:
+            # Проверяем, подписан ли пользователь на обновления аниме
+            print(info(f"Проверка подписки пользователя с ID: {user_id} на аниме ID: {anime_id}"))
+            subscription_result = await session.execute(
+                select(Subscription.id)
+                .filter(Subscription.user_id == user_id, Subscription.anime_id == anime_id)
+            )
+            is_subscribed = subscription_result.scalar() is not None
+            subscribe_text = "Отписаться" if is_subscribed else "Подписаться"
+            print(info(f"Статус подписки: {'Подписан' if is_subscribed else 'Не подписан'}"))
+
             # Извлекаем название, постер, описание, тип озвучки и команду озвучки
             print(info(f"Запрос к базе данных для аниме ID: {anime_id}."))
             anime_result = await session.execute(
@@ -172,13 +185,16 @@ async def get_episodes_data(dialog_manager: DialogManager, **kwargs) -> Dict:
         )
 
     print(success(f"Данные по аниме '{release_name}' успешно получены.\n**************************************************************************"))
+
     return {
         'episode_list': episode_list,
         'poster': poster,
         'anime_name': release_name,
         'anime_description': description,
         'voice_type': voice_type,
-        'voice_team': voice_team
+        'voice_team': voice_team,
+        'is_subscribed': is_subscribed,
+        'subscribe_text': subscribe_text  # Текст кнопки в зависимости от статуса подписки
     }
 
 
@@ -231,3 +247,9 @@ async def get_episode_data(dialog_manager: DialogManager, **kwargs):
 
     print(warning(f"Возвращаем пустое значение для эпизода с ID: {episode_id}."))
     return {'video': None}
+
+
+async def get_subscription_data(dialog_manager, **kwargs):
+    """Получение данных о подписке для настройки кнопки."""
+    is_subscribed = dialog_manager.dialog_data.get('is_subscribed', False)  # Данные из контекста
+    return {"subscribe_text": "Отписаться" if is_subscribed else "Подписаться"}

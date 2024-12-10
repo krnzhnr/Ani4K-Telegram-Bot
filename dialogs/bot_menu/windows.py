@@ -1,10 +1,10 @@
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Back
+from aiogram_dialog.widgets.kbd import ScrollingGroup, Select, Cancel, Back, Button
 from aiogram_dialog.widgets.text import Format, Const
 from aiogram_dialog.widgets.media import DynamicMedia
 
 from .getters import get_anime_data, get_episodes_data, get_episode_data
-from .selected import on_title_chosen, on_episode_chosen
+from .selected import on_title_chosen, on_episode_chosen, on_title_subscribed
 from .states import BotMenu
 
 
@@ -62,10 +62,16 @@ def episodes_window():
             width=3,  # Ширина группы
             height=PAGE_SIZE,  # Высота группы
         ),
+        Button(
+            Format("{subscribe_text}"),  # Динамическое значение текста
+            id="subscribe",
+            on_click=on_title_subscribed,
+        ),
         Back(Const('<<< Назад к тайтлам')),  # Кнопка для возврата на экран с аниме
         state=BotMenu.EPISODES,  # Состояние для выбора эпизодов
         getter=get_episodes_data  # Получатель данных для списка эпизодов
     )
+
 
 
 def episode_window():

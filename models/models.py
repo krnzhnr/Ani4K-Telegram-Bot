@@ -58,6 +58,8 @@ class Anime(Base):
 
     genres = relationship("Genre", secondary=anime_genre_association, back_populates="anime")
     episodes = relationship("Episode", back_populates="anime")
+    # Связь с подписками
+    subscriptions = relationship("Subscription", back_populates="anime", cascade="all, delete-orphan")
 
 
 class Genre(Base):
@@ -80,3 +82,38 @@ class Episode(Base):
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+class User(Base):
+    """
+    Модель пользователя. Содержит информацию о пользователях, взаимодействующих с ботом.
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)  # ID пользователя (Telegram user_id)
+    first_name = Column(String, nullable=False)  # Имя пользователя
+    last_name = Column(String, nullable=True)  # Фамилия пользователя
+    full_name = Column(String, nullable=False)  # Полное имя пользователя
+    username = Column(String, nullable=True)  # Username пользователя
+    first_interaction_date = Column(DateTime, default=lambda: datetime.now(belarus_timezone), nullable=False)  # Дата первого взаимодействия
+    last_interaction_date = Column(DateTime, default=lambda: datetime.now(belarus_timezone), onupdate=lambda: datetime.now(belarus_timezone), nullable=False)  # Дата последнего взаимодействия
+    subscriptions_last_updated = Column(DateTime, default=None, nullable=True)  # Последнее обновление подписок
+
+    # Связь с подписками
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
+
+
+class Subscription(Base):
+    """
+    Модель подписки. Связывает пользователей и аниме, на которые они подписаны.
+    """
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True)  # Уникальный ID записи
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ID пользователя
+    anime_id = Column(Integer, ForeignKey("anime.id", ondelete="CASCADE"), nullable=False)  # ID аниме
+    subscribed_at = Column(DateTime, default=lambda: datetime.now(belarus_timezone), nullable=False)  # Дата подписки
+
+    # Связи с пользователями и аниме
+    user = relationship("User", back_populates="subscriptions")
+    anime = relationship("Anime", back_populates="subscriptions")

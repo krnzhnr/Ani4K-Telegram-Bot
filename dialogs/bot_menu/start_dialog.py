@@ -1,17 +1,24 @@
 # Импорты из сторонних библиотек
+from datetime import datetime
 from aiogram import Router, Bot
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode
+from datetime import datetime, timezone, timedelta
 
 # Локальные импорты
 from dialogs.bot_menu.states import BotMenu  # Состояния диалога
 from utils.terminal import success, error, warning, info, debug
+from database import upsert_user
 
 
 # Инициализация роутера и ID чата
 router = Router()
 chat_id = '-1002104882531'
+
+# Определим часовой пояс для Беларуси
+belarus_timezone = timezone(timedelta(hours=3))
+
 
 
 # Функция для проверки, состоит ли пользователь в группе
@@ -34,28 +41,22 @@ chat_id = '-1002104882531'
 @router.message(Command('start'))
 async def get_menu(message: Message, dialog_manager: DialogManager, bot: Bot):
     """
-    Обрабатывает команду /start. Проверяет, состоит ли пользователь в группе.
-    Если да, начинает диалог с первым состоянием, если нет - отправляет сообщение о том,
-    что пользователь не может получить доступ.
+    Обрабатывает команду /start. Сохраняет или обновляет данные пользователя
+    в базе данных и запускает главное меню.
     """
     user_id = message.from_user.id
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name or ""
     full_name = message.from_user.full_name
-    username = message.from_user.username
+    username = message.from_user.username or ""
 
-    # Логирование: выводим информацию о пользователе
-    print(info(f"Получена команда /start от пользователя {full_name} (ID: {user_id}, Username: {username})"))
+    # Текущая дата взаимодействия
+    interaction_date = datetime.now(belarus_timezone)
 
-    # Закомментированная проверка наличия пользователя в группе
-    # if await is_user_in_group(user_id, bot):
-    #     print(f'{full_name} (ID: {user_id}, Username: {username}) открыл меню.')
-    #     await dialog_manager.start(BotMenu.TITLES, mode=StartMode.RESET_STACK)
-    # else:
-    #     print(f'{full_name} (ID: {user_id}, Username: {username}) не состоит в группе, доступ к меню закрыт.')
-    #     await message.answer(
-    #         'Я не могу ответить на запрос, так как вы не состоите в нашей группе.'
-    #     )
+    # Сохраняем или обновляем данные о пользователе в базе данных
+    await upsert_user(user_id, first_name, last_name, full_name, username, interaction_date)
 
-    # Прямой запуск диалога без проверки
+    # Запускаем меню
     print(info(f'{full_name} (ID: {user_id}, Username: {username}) открыл меню.'))
     await dialog_manager.start(BotMenu.TITLES, mode=StartMode.RESET_STACK)
     print(info(f"Диалог с {full_name} (ID: {user_id}) был запущен с начальным состоянием меню."))
